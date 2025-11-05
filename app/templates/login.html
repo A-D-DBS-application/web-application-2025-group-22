@@ -2,21 +2,38 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Login / Aanmelden</title>
+    <script>
+        async function handleSubmit(actionType) {
+            const name = document.getElementById("name").value;
+
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ name: name, action: actionType })
+            });
+
+            const data = await response.json();
+
+            const msg = document.getElementById("message");
+            msg.textContent = data.message;
+            msg.style.color = data.status === "success" ? "green" : "red";
+
+            if (data.status === "success") {
+                document.getElementById("login-form").style.display = "none";
+            }
+        }
+    </script>
 </head>
 <body>
-    <h1>Welkom op de loginpagina</h1>
+    <h1>Welkom</h1>
 
-    <form action="/login" method="post">
-        <label for="name">Naam:</label>
-        <input type="text" id="name" name="name" required>
-        <button type="submit">Inloggen</button>
-    </form>
+    <div id="login-form">
+        <input type="text" id="name" placeholder="Naam" required>
+        <button onclick="handleSubmit('login')">Inloggen</button>
+        <button onclick="handleSubmit('signup')">Aanmelden</button>
+    </div>
 
-    {% if message %}
-        <p style="color:green;">{{ message }}</p>
-    {% elif error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
+    <p id="message"></p>
 </body>
 </html>
