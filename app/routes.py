@@ -33,4 +33,3 @@ def login():
         return jsonify({"status": "success", "message": f"Ingelogd als {name}"})
 
     return jsonify({"status": "error", "message": "Ongeldige actie."})
-
