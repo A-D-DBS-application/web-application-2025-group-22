@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Suppliers Lijst</title>
+</head>
+<body>
+    <h1>Suppliers Lijst</h1>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>SUPPLIER_ID</th>
+            <th>name</th>
+            <th>country</th>
+            <th>postal code</th>
+            <th>city</th>
+            <th>street</th>
+            <th>housenumber</th>
+            <th>VAT/BTW</th>
+            <th>Phone_nr</th>
+        </tr>
+        {% for s in suppliers %}
+        <tr>
+            <td>{{ s.SUPPLIER_ID }}</td>
+            <td>{{ s.name }}</td>
+            <td>{{ s.country }}</td>
+            <td>{{ s.Postal_code }}</td>
+            <td>{{ s.city }}</td>
+            <td>{{ s.street }}</td>
+            <td>{{ s.housenumber }}</td>
+            <td>{{ s.VAT_BTW }}</td>
+            <td>{{ s.Phone_nr }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <button onclick="window.location.href='/home'">Terug</button>
+</body>
+</html>
