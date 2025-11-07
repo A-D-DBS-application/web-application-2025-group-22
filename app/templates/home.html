@@ -3,9 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
 </head>
 <body>
-    <h1>Welkom op de homepagina! 🏠</h1>
-    <button onclick="window.location.href='/clients'">Clients bekijken</button>
+    <div class="home-container">
+        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+        <h1>Welkom op de homepagina! 🏠</h1>
+        <p class="subtitle">Kies een optie om verder te gaan.</p>
+        <button onclick="window.location.href='/clients'">Clients bekijken</button>
+    </div>
 </body>
 </html>
+
