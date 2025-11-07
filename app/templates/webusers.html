@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Webusers Lijst</title>
+</head>
+<body>
+    <h1>Webusers Lijst</h1>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>WEBUSER_ID</th>
+            <th>Name</th>
+        </tr>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.WEBUSER_ID }}</td>
+            <td>{{ u.Name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <button onclick="window.location.href='/home'">Terug</button>
+</body>
+</html>
