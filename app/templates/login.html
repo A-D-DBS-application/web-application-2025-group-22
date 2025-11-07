@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Login / Aanmelden</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script>
         async function handleSubmit(actionType) {
             const name = document.getElementById("name").value;
@@ -26,14 +27,16 @@
     </script>
 </head>
 <body>
-    <h1 id="title">Welkom</h1>
-
-    <div id="login-form">
-        <input type="text" id="name" placeholder="Naam" required>
-        <button onclick="handleSubmit('login')">Inloggen</button>
-        <button onclick="handleSubmit('signup')">Aanmelden</button>
+    <div class="login-container">
+        <h1 id="title">Welkom</h1>
+        <form id="login-form" onsubmit="return false;">
+            <input type="text" id="name" placeholder="Naam" required>
+            <div class="button-group">
+                <button type="button" onclick="handleSubmit('login')">Inloggen</button>
+                <button type="button" onclick="handleSubmit('signup')">Aanmelden</button>
+            </div>
+        </form>
+        <p id="message" class="message"></p>
     </div>
-
-    <p id="message"></p>
 </body>
 </html>
