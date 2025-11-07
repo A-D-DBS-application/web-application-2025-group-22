@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Orders Lijst</title>
+</head>
+<body>
+    <h1>Orders Lijst</h1>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>ORDER_NR</th>
+            <th>FACTUUR_NR</th>
+            <th>CLIENT_ID</th>
+            <th>SUPPLIER_ID</th>
+            <th>PRODUCT_NR</th>
+            <th>quantity</th>
+            <th>total sell price</th>
+            <th>date</th>
+        </tr>
+        {% for o in orders %}
+        <tr>
+            <td>{{ o.ORDER_NR }}</td>
+            <td>{{ o.FACTUUR_NR }}</td>
+            <td>{{ o.CLIENT_ID }}</td>
+            <td>{{ o.SUPPLIER_ID }}</td>
+            <td>{{ o.PRODUCT_NR }}</td>
+            <td>{{ o.quantity }}</td>
+            <td>{{ o.total_sell_price }}</td>
+            <td>{{ o.date }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <button onclick="window.location.href='/home'">Terug</button>
+</body>
+</html>

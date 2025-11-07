@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
-from .models import WEBUSER, CLIENT
+from .models import WEBUSER, CLIENT, SUPPLIER, PRODUCT, ORDER, COST
+
 from . import db
 
 main = Blueprint('main', __name__)
@@ -47,3 +48,33 @@ def home_page():
 def clients():
     clients = CLIENT.query.all()
     return render_template('clients.html', clients=clients)
+
+# 👥 Webusers-overzichtspagina
+@main.route('/webusers')
+def webusers():
+    users = WEBUSER.query.all()
+    return render_template('webusers.html', users=users)
+
+# 👥 Suppliers-overzichtspagina
+@main.route('/suppliers')
+def suppliers():
+    suppliers = SUPPLIER.query.all()
+    return render_template('suppliers.html', suppliers=suppliers)
+
+# 📦 Products-overzichtspagina
+@main.route('/products')
+def products():
+    products = PRODUCT.query.all()
+    return render_template('products.html', products=products)
+
+# 🛒 Orders-overzichtspagina
+@main.route('/orders')
+def orders():
+    orders = ORDER.query.all()
+    return render_template('orders.html', orders=orders)
+
+# 💰 Costs-overzichtspagina
+@main.route('/costs')
+def costs():
+    costs = COST.query.all()
+    return render_template('costs.html', costs=costs)
