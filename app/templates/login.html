@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
@@ -19,7 +19,6 @@
             msg.textContent = data.message;
             msg.style.color = data.status === "success" ? "green" : "red";
 
-            // 🚀 nieuwe code:
             if (data.status === "success") {
                 window.location.href = "/home";
             }
@@ -29,9 +28,6 @@
 <body>
     <div class="login-container">
         <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
-
-        <img src="{{ url_for('static', filename='icecream.png') }}" alt="Liq Icecream" class="icecream">
-
         <h1 id="title">Welkom</h1>
 
         <form id="login-form" onsubmit="return false;">
@@ -41,8 +37,8 @@
                 <button type="button" onclick="handleSubmit('signup')">Aanmelden</button>
             </div>
         </form>
+
         <p id="message" class="message"></p>
     </div>
 </body>
-
 </html>
