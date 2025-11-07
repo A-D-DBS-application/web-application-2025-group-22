@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Aanmelden</title>
+  </head>
+  <body>
+    <h1>Nieuwe gebruiker registreren</h1>
+
+    {% if message %}
+      <p style="color:red;">{{ message }}</p>
+    {% endif %}
+
+    <form action="/register" method="post">
+      <label>Gebruikersnaam:</label>
+      <input type="text" name="username" required><br><br>
+
+      <label>Email:</label>
+      <input type="email" name="email" required><br><br>
+
+      <label>Bedrijf:</label>
+      <select name="supplier_id">
+        <option value="1">LIQ</option>
+        <!-- later kunnen hier andere bedrijven komen -->
+      </select><br><br>
+
+      <button type="submit">Aanmelden</button>
+    </form>
+
+    <p>Heb je al een account? <a href="/login">Log hier in</a></p>
+  </body>
+</html>
