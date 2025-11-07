@@ -28,6 +28,7 @@
 </head>
 <body>
     <div class="login-container">
+        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
         <h1 id="title">Welkom</h1>
         <form id="login-form" onsubmit="return false;">
             <input type="text" id="name" placeholder="Naam" required>

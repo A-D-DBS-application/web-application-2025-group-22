@@ -44,4 +44,14 @@ body {
     color: red;
     margin-top: 10px;
 }
+/* Logo bovenaan */
+.logo {
+    width: 150px;
+    margin-bottom: 20px;
+}
 
+/* Ijsje afbeelding */
+.icecream {
+    width: 100px;
+    margin: 10px;
+}
