@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Client Lijst</title>
+</head>
+<body>
+    <h1>Client Lijst</h1>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>ID</th>
+            <th>Naam</th>
+            <th>Land</th>
+            <th>Postcode</th>
+            <th>Stad</th>
+            <th>Straat</th>
+            <th>Nr</th>
+            <th>BTW/VAT</th>
+        </tr>
+        {% for c in clients %}
+        <tr>
+            <td>{{ c.CLIENT_ID }}</td>
+            <td>{{ c.Name }}</td>
+            <td>{{ c.Country }}</td>
+            <td>{{ c.Postcode }}</td>
+            <td>{{ c.city }}</td>
+            <td>{{ c.street }}</td>
+            <td>{{ c.housenr }}</td>
+            <td>{{ c.BTW_VAT }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <button onclick="window.location.href='/home'">Terug</button>
+</body>
+</html>

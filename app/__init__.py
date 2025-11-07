@@ -1,15 +1,13 @@
-import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import OperationalError
-from .config import Config  # haalt Supabase instellingen op
+from .config import Config
 
 db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(Config)  # ⬅️ Dit zorgt dat Supabase gebruikt wordt
-
+    app.config.from_object(Config)
     db.init_app(app)
 
     try:
@@ -21,11 +19,11 @@ def create_app():
         print("❌ Kan geen verbinding maken met Supabase, gebruik SQLite fallback.")
         print(f"Foutmelding: {e}")
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///fallback.db"
-        db.init_app(app)
 
     from .routes import main
     app.register_blueprint(main)
 
     return app
+
 
 

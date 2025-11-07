@@ -1,14 +1,15 @@
 from flask import Blueprint, render_template, request, jsonify
-from .models import WEBUSER
+from .models import WEBUSER, CLIENT
 from . import db
 
 main = Blueprint('main', __name__)
 
+# 🏠 Loginpagina
 @main.route('/')
 def home():
     return render_template('login.html')
 
-
+# 🔑 Login / Signup functionaliteit
 @main.route('/login', methods=['POST'])
 def login():
     name = request.form.get('name')
@@ -33,3 +34,16 @@ def login():
         return jsonify({"status": "success", "message": f"Ingelogd als {name}"})
 
     return jsonify({"status": "error", "message": "Ongeldige actie."})
+
+
+# 🏡 Homepagina
+@main.route('/home')
+def home_page():
+    return render_template('home.html')
+
+
+# 👥 Client-overzichtspagina
+@main.route('/clients')
+def clients():
+    clients = CLIENT.query.all()
+    return render_template('clients.html', clients=clients)

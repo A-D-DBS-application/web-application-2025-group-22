@@ -8,3 +8,20 @@ class WEBUSER(db.Model):
 
     def __repr__(self):
         return f'<WEBUSER {self.Name}>'
+
+from . import db
+
+class CLIENT(db.Model):
+    __tablename__ = 'CLIENT'
+
+    CLIENT_ID = db.Column(db.Integer, primary_key=True)
+    Name = db.Column(db.String(100), nullable=False)
+    Country = db.Column(db.String(100))
+    Postcode = db.Column(db.String(20))
+    city = db.Column(db.String(100))
+    street = db.Column(db.String(100))
+    housenr = db.Column(db.String(20))
+    BTW_VAT = db.Column("BTW/VAT", db.String(50))  # ← let op: underscore in plaats van "/"
+
+    def __repr__(self):
+        return f'<CLIENT {self.Name}>'

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
@@ -18,9 +18,9 @@
             msg.textContent = data.message;
             msg.style.color = data.status === "success" ? "green" : "red";
 
+            // 🚀 nieuwe code:
             if (data.status === "success") {
-                document.getElementById("login-form").style.display = "none";
-                document.getElementById("title").textContent = "Homepagina 🏠";
+                window.location.href = "/home";
             }
         }
     </script>
