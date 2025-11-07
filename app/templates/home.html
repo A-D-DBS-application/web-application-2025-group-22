@@ -2,27 +2,25 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Home</title>
+    <title>Home - LiQ</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
 </head>
+
 <body>
-HEAD
     <div class="home-container">
         <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+
         <h1>Welkom op de homepagina! 🏠</h1>
         <p class="subtitle">Kies een optie om verder te gaan.</p>
-        <button onclick="window.location.href='/clients'">Clients bekijken</button>
+
+        <div class="button-group">
+            <a href="/clients"><button>Clients</button></a>
+            <a href="/webusers"><button>Webusers</button></a>
+            <a href="/suppliers"><button>Suppliers</button></a>
+            <a href="/products"><button>Products</button></a>
+            <a href="/orders"><button>Orders</button></a>
+            <a href="/costs"><button>Costs</button></a>
+        </div>
     </div>
-
-    <h1>Welkom op de homepagina! 🏠</h1>
-    <button onclick="window.location.href='/clients'">Clients</button>
-    <button onclick="window.location.href='/webusers'">Webusers</button>
-    <button onclick="window.location.href='/suppliers'">Suppliers</button>
-    <button onclick="window.location.href='/products'">Products</button>
-    <button onclick="window.location.href='/orders'">Orders</button>
-    <button onclick="window.location.href='/costs'">Costs</button>
-
-    ccc47d5b759850c5e98c30544e90400a4ec599ef
 </body>
 </html>
-

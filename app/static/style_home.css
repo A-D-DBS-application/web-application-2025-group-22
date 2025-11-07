@@ -1,4 +1,4 @@
-/* Algemene stijl */
+/* Algemene opmaak */
 body {
     margin: 0;
     height: 100vh;
@@ -6,18 +6,18 @@ body {
     justify-content: center;
     align-items: center;
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(to bottom right, #f5e8da, #e8cdb2);
-    background-attachment: fixed;
+    background: linear-gradient(to bottom right, #f8e7cf, #e2c6a4);
 }
 
-/* Container */
+/* Centrale kaart */
 .home-container {
-    background: rgba(255, 250, 245, 0.9);
+    background: #fff8f0;
     padding: 50px 60px;
     border-radius: 25px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     text-align: center;
-    animation: fadeIn 0.7s ease-in-out;
+    width: 700px;
+    animation: fadeIn 0.6s ease-in-out;
 }
 
 /* Logo */
@@ -26,27 +26,33 @@ body {
     margin-bottom: 25px;
 }
 
-/* Titel */
+/* Tekst */
 h1 {
     color: #6e3c1b;
     font-size: 28px;
     margin-bottom: 10px;
 }
 
-/* Subtitel */
 .subtitle {
     color: #8a5738;
     font-size: 18px;
-    margin-bottom: 25px;
+    margin-bottom: 30px;
 }
 
-/* Knop */
+/* Knoppen */
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+}
+
 button {
-    padding: 12px 20px;
-    font-size: 16px;
+    padding: 12px 24px;
+    font-size: 15px;
     border: none;
     background-color: #a86b45;
-    color: white;
+    color: #fff8f0;
     border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
