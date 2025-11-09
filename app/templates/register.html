@@ -18,9 +18,10 @@
       <input type="email" name="email" required><br><br>
 
       <label>Bedrijf:</label>
-      <select name="supplier_id">
-        <option value="1">LIQ</option>
-        <!-- later kunnen hier andere bedrijven komen -->
+      <select name="supplier_id" required>
+        {% for supplier in suppliers %}
+          <option value="{{ supplier.SUPPLIER_ID }}">{{ supplier.name }}</option>
+        {% endfor %}
       </select><br><br>
 
       <button type="submit">Aanmelden</button>

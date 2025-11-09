@@ -5,6 +5,10 @@ class WEBUSER(db.Model):
 
     WEBUSER_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     Name = db.Column(db.String(100), unique=True, nullable=False)
+    Email = db.Column(db.String(150))
+    SUPPLIER_ID = db.Column(db.Integer, db.ForeignKey('SUPPLIER.SUPPLIER_ID'), nullable=False)
+
+    supplier = db.relationship('SUPPLIER', backref='webusers')
 
     def __repr__(self):
         return f'<WEBUSER {self.Name}>'

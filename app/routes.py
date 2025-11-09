@@ -1,6 +1,5 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for
 from .models import WEBUSER, CLIENT, SUPPLIER, PRODUCT, ORDER, COST
-
 from . import db
 
 main = Blueprint('main', __name__)
@@ -24,18 +23,40 @@ def login():
     if action == "signup":
         if user:
             return jsonify({"status": "error", "message": "Account bestaat al. Log in."})
-        new_user = WEBUSER(Name=name)
-        db.session.add(new_user)
-        db.session.commit()
-        return jsonify({"status": "success", "message": f"Aangemeld als {name}"})
+        # Redirect naar registratiepagina
+        return jsonify({"status": "redirect", "url": "/register"})
 
     elif action == "login":
         if not user:
-            return jsonify({"status": "error", "message": "Account niet gevonden. Meld je eerst aan."})
+            return jsonify({"status": "error", "message": "Account niet gevonden. Gelieve eerst aan te melden."})
         return jsonify({"status": "success", "message": f"Ingelogd als {name}"})
 
     return jsonify({"status": "error", "message": "Ongeldige actie."})
 
+# 📝 Registratiepagina
+@main.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        supplier_id = request.form.get('supplier_id')
+
+        if not username or not email or not supplier_id:
+            return render_template('register.html', message="Vul alle velden in.")
+
+        existing_user = WEBUSER.query.filter_by(Name=username).first()
+        if existing_user:
+            return render_template('register.html', message="Gebruiker bestaat al. Log in.")
+
+        new_user = WEBUSER(Name=username, Email=email, SUPPLIER_ID=int(supplier_id))
+        db.session.add(new_user)
+        db.session.commit()
+
+        return redirect(url_for('main.home'))
+
+    # GET
+    suppliers = SUPPLIER.query.all()
+    return render_template('register.html', suppliers=suppliers)
 
 # 🏡 Homepagina
 @main.route('/home')

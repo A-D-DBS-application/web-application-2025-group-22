@@ -16,6 +16,13 @@
 
             const data = await response.json();
             const msg = document.getElementById("message");
+
+            if (data.status === "redirect" && data.url) {
+                // redirect naar register pagina
+                window.location.href = data.url;
+                return;
+            }
+
             msg.textContent = data.message;
             msg.style.color = data.status === "success" ? "green" : "red";
 
