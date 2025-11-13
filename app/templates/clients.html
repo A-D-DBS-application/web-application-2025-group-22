@@ -3,44 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <title>Client Lijst</title>
+        <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .details-button {
+            padding: 6px 12px;
+            border: none;
+            background-color: #007BFF;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .details-button:hover {
+            background-color: #0056b3;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 400px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        .modal-row {
+            margin-bottom: 10px;
+        }
+        .modal-row strong {
+            display: inline-block;
+            width: 130px;
+        }
+    </style>
 </head>
 <body>
     <h1>Client Lijst</h1>
-    <table border="1" cellpadding="5">
+    <table>
         <tr>
-            <th>CLIENT_ID</th>
             <th>Naam</th>
             <th>Land</th>
-            <th>Postcode</th>
-            <th>Stad</th>
-            <th>Straat</th>
-            <th>Nr</th>
-            <th>BTW/VAT</th>
             <th>Total Revenue</th>
             <th>Total Production Cost</th>
             <th>Total Transport Cost</th>
             <th>Total Storage Cost</th>
+            <th>Details</th>
         </tr>
         {% for c in clients %}
+        {% set totals = client_totals.get(c.CLIENT_ID) %}
+        {% set client_data = {
+            'CLIENT_ID': c.CLIENT_ID,
+            'Postcode': c.Postcode,
+            'Stad': c.city,
+            'Straat': c.street,
+            'Nr': c.housenr,
+            'BTW_VAT': c.BTW_VAT,
+            'Naam': c.Name,
+            'Land': c.Country
+        } %}
         <tr>
-            <td>{{ c.CLIENT_ID }}</td>
             <td>{{ c.Name }}</td>
             <td>{{ c.Country }}</td>
-            <td>{{ c.Postcode }}</td>
-            <td>{{ c.city }}</td>
-            <td>{{ c.street }}</td>
-            <td>{{ c.housenr }}</td>
-            <td>{{ c.BTW_VAT }}</td>
-            {% set totals = client_totals.get(c.CLIENT_ID) %}
             <td>{{ totals.total_revenue | round(2) }}</td>
             <td>{{ totals.total_production_cost | round(2) }}</td>
             <td>{{ totals.total_transport_cost | round(2) }}</td>
             <td>{{ totals.total_storage_cost | round(2) }}</td>
+            <td>
+                <button class="details-button" data-client='{{ client_data | tojson | safe }}'>Bekijk</button>
+            </td>
         </tr>
         {% endfor %}
     </table>
 
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="modalClose">&times;</span>
+            <h2>Client Details</h2>
+            <div class="modal-row"><strong>CLIENT_ID:</strong> <span id="modalClientId"></span></div>
+            <div class="modal-row"><strong>Naam:</strong> <span id="modalName"></span></div>
+            <div class="modal-row"><strong>Land:</strong> <span id="modalCountry"></span></div>
+            <div class="modal-row"><strong>Postcode:</strong> <span id="modalPostcode"></span></div>
+            <div class="modal-row"><strong>Stad:</strong> <span id="modalCity"></span></div>
+            <div class="modal-row"><strong>Straat:</strong> <span id="modalStreet"></span></div>
+            <div class="modal-row"><strong>Nr:</strong> <span id="modalNumber"></span></div>
+            <div class="modal-row"><strong>BTW/VAT:</strong> <span id="modalVat"></span></div>
+        </div>
+    </div>
+
     <br>
     <button onclick="window.location.href='/home'">Terug</button>
+    
+    <script>
+        const modal = document.getElementById('clientModal');
+        const closeBtn = document.getElementById('modalClose');
+        const modalFields = {
+            CLIENT_ID: document.getElementById('modalClientId'),
+            Naam: document.getElementById('modalName'),
+            Land: document.getElementById('modalCountry'),
+            Postcode: document.getElementById('modalPostcode'),
+            Stad: document.getElementById('modalCity'),
+            Straat: document.getElementById('modalStreet'),
+            Nr: document.getElementById('modalNumber'),
+            BTW_VAT: document.getElementById('modalVat')
+        };
+
+        document.querySelectorAll('.details-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const clientData = JSON.parse(button.getAttribute('data-client'));
+                Object.entries(clientData).forEach(([key, value]) => {
+                    if (modalFields[key] !== undefined) {
+                        modalFields[key].textContent = value || '-';
+                    }
+                });
+                modal.style.display = 'block';
+            });
+        });
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        };
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        };
+    </script>
 </body>
 </html>
