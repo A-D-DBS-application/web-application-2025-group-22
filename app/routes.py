@@ -1,4 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for
+from sqlalchemy import func
+
 from .models import WEBUSER, CLIENT, SUPPLIER, PRODUCT, ORDER, COST
 from . import db
 
@@ -68,7 +70,41 @@ def home_page():
 @main.route('/clients')
 def clients():
     clients = CLIENT.query.all()
-    return render_template('clients.html', clients=clients)
+    
+    client_totals = {
+        client.CLIENT_ID: {
+            "total_revenue": 0,
+            "total_production_cost": 0,
+            "total_transport_cost": 0,
+            "total_storage_cost": 0,
+        }
+        for client in clients
+    }
+
+    aggregate_rows = (
+        db.session.query(
+            CLIENT.CLIENT_ID,
+            func.coalesce(func.sum(ORDER.total_sell_price), 0).label("total_revenue"),
+            func.coalesce(func.sum(ORDER.quantity * PRODUCT.Unit_cost), 0).label("total_production_cost"),
+            func.coalesce(func.sum(COST.Total_transport_cost), 0).label("total_transport_cost"),
+            func.coalesce(func.sum(COST.Total_stockage_cost), 0).label("total_storage_cost"),
+        )
+        .outerjoin(ORDER, CLIENT.CLIENT_ID == ORDER.CLIENT_ID)
+        .outerjoin(PRODUCT, ORDER.PRODUCT_NR == PRODUCT.PRODUCT_NR)
+        .outerjoin(COST, ORDER.FACTUUR_NR == COST.FACTUUR_NR)
+        .group_by(CLIENT.CLIENT_ID)
+        .all()
+    )
+
+    for row in aggregate_rows:
+        client_totals[row.CLIENT_ID] = {
+            "total_revenue": row.total_revenue,
+            "total_production_cost": row.total_production_cost,
+            "total_transport_cost": row.total_transport_cost,
+            "total_storage_cost": row.total_storage_cost,
+        }
+
+    return render_template('clients.html', clients=clients, client_totals=client_totals)
 
 # 👥 Webusers-overzichtspagina
 @main.route('/webusers')

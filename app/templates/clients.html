@@ -16,6 +16,10 @@
             <th>Straat</th>
             <th>Nr</th>
             <th>BTW/VAT</th>
+            <th>Total Revenue</th>
+            <th>Total Production Cost</th>
+            <th>Total Transport Cost</th>
+            <th>Total Storage Cost</th>
         </tr>
         {% for c in clients %}
         <tr>
@@ -27,6 +31,11 @@
             <td>{{ c.street }}</td>
             <td>{{ c.housenr }}</td>
             <td>{{ c.BTW_VAT }}</td>
+            {% set totals = client_totals.get(c.CLIENT_ID) %}
+            <td>{{ totals.total_revenue | round(2) }}</td>
+            <td>{{ totals.total_production_cost | round(2) }}</td>
+            <td>{{ totals.total_transport_cost | round(2) }}</td>
+            <td>{{ totals.total_storage_cost | round(2) }}</td>
         </tr>
         {% endfor %}
     </table>
