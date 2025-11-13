@@ -104,7 +104,14 @@ def clients():
             "total_storage_cost": row.total_storage_cost,
         }
 
-    return render_template('clients.html', clients=clients, client_totals=client_totals)
+    countries = sorted({client.Country for client in clients if client.Country})
+
+    return render_template(
+        'clients.html',
+        clients=clients,
+        client_totals=client_totals,
+        countries=countries,
+    )
 
 # 👥 Webusers-overzichtspagina
 @main.route('/webusers')

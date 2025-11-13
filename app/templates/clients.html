@@ -2,10 +2,93 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Client Lijst</title>
+    <title>Clients</title>
         <style>
         body {
             font-family: Arial, sans-serif;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .action-group {
+            display: flex;
+            gap: 12px;
+        }
+        .action-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007BFF;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .action-button:hover {
+            background-color: #0056b3;
+        }
+        .dropdown {
+            position: relative;
+        }
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 12px;
+            min-width: 220px;
+            z-index: 10;
+            display: none;
+        }
+        .dropdown-menu button,
+        .dropdown-menu label {
+            width: 100%;
+            text-align: left;
+        }
+        .dropdown-option {
+            padding: 8px 10px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .dropdown-option:hover {
+            background-color: #f3f3f3;
+        }
+        .filter-title {
+            font-weight: 600;
+            margin-top: 0;
+        }
+        .filter-options {
+            max-height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .filter-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .filter-actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .filter-actions button:first-child {
+            background-color: #007BFF;
+            color: white;
+        }
+        .filter-actions button:last-child {
+            background-color: #e0e0e0;
         }
         table {
             width: 100%;
@@ -75,17 +158,49 @@
     </style>
 </head>
 <body>
-    <h1>Client Lijst</h1>
-    <table>
+    <div class="page-header">
+        <h1>Clients</h1>
+        <div class="action-group">
+            <div class="dropdown">
+                <button class="action-button" id="sortButton">Sort</button>
+                <div class="dropdown-menu" id="sortMenu">
+                    <button class="dropdown-option" data-sort="revenue">Total Revenue (High to Low)</button>
+                    <button class="dropdown-option" data-sort="alphabetical">Alphabetical (A-Z)</button>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button class="action-button" id="filterButton">Filter</button>
+                <div class="dropdown-menu filter-menu" id="filterMenu">
+                    <p class="filter-title">Select countries</p>
+                    <div class="filter-options">
+                        {% for country in countries %}
+                        <label>
+                            <input type="checkbox" class="country-filter" value="{{ country }}" checked>
+                            {{ country }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <div class="filter-actions">
+                        <button type="button" id="filterApply">Apply</button>
+                        <button type="button" id="filterClear">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table id="clientsTable">
+        <thead>
         <tr>
-            <th>Naam</th>
-            <th>Land</th>
+            <th>Name</th>
+            <th>Country</th>
             <th>Total Revenue</th>
             <th>Total Production Cost</th>
             <th>Total Transport Cost</th>
             <th>Total Storage Cost</th>
             <th>Details</th>
         </tr>
+        </thead>
+        <tbody>
         {% for c in clients %}
         {% set totals = client_totals.get(c.CLIENT_ID) %}
         {% set client_data = {
@@ -98,7 +213,7 @@
             'Naam': c.Name,
             'Land': c.Country
         } %}
-        <tr>
+        <tr class="client-row" data-name="{{ c.Name }}" data-country="{{ c.Country }}" data-revenue="{{ totals.total_revenue | default(0) }}">
             <td>{{ c.Name }}</td>
             <td>{{ c.Country }}</td>
             <td>{{ totals.total_revenue | round(2) }}</td>
@@ -110,6 +225,7 @@
             </td>
         </tr>
         {% endfor %}
+        </tbody>
     </table>
 
     <div id="clientModal" class="modal">
@@ -117,8 +233,8 @@
             <span class="close" id="modalClose">&times;</span>
             <h2>Client Details</h2>
             <div class="modal-row"><strong>CLIENT_ID:</strong> <span id="modalClientId"></span></div>
-            <div class="modal-row"><strong>Naam:</strong> <span id="modalName"></span></div>
-            <div class="modal-row"><strong>Land:</strong> <span id="modalCountry"></span></div>
+            <div class="modal-row"><strong>Name:</strong> <span id="modalName"></span></div>
+            <div class="modal-row"><strong>Country:</strong> <span id="modalCountry"></span></div>
             <div class="modal-row"><strong>Postcode:</strong> <span id="modalPostcode"></span></div>
             <div class="modal-row"><strong>Stad:</strong> <span id="modalCity"></span></div>
             <div class="modal-row"><strong>Straat:</strong> <span id="modalStreet"></span></div>
@@ -165,6 +281,81 @@
                 modal.style.display = 'none';
             }
         };
+
+        const sortButton = document.getElementById('sortButton');
+        const sortMenu = document.getElementById('sortMenu');
+        const filterButton = document.getElementById('filterButton');
+        const filterMenu = document.getElementById('filterMenu');
+        const tableBody = document.querySelector('#clientsTable tbody');
+        const rows = Array.from(tableBody.querySelectorAll('.client-row'));
+
+        function toggleMenu(menu, show) {
+            menu.style.display = show ? 'block' : 'none';
+        }
+
+        sortButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const isVisible = sortMenu.style.display === 'block';
+            toggleMenu(filterMenu, false);
+            toggleMenu(sortMenu, !isVisible);
+        });
+
+        filterButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const isVisible = filterMenu.style.display === 'block';
+            toggleMenu(sortMenu, false);
+            toggleMenu(filterMenu, !isVisible);
+        });
+
+        document.addEventListener('click', () => {
+            toggleMenu(sortMenu, false);
+            toggleMenu(filterMenu, false);
+        });
+
+        sortMenu.addEventListener('click', (event) => event.stopPropagation());
+        filterMenu.addEventListener('click', (event) => event.stopPropagation());
+
+        document.querySelectorAll('#sortMenu .dropdown-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const sortType = option.dataset.sort;
+                const sortedRows = [...rows];
+                if (sortType === 'revenue') {
+                    sortedRows.sort((a, b) => parseFloat(b.dataset.revenue) - parseFloat(a.dataset.revenue));
+                } else {
+                    sortedRows.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
+                }
+                sortedRows.forEach(row => tableBody.appendChild(row));
+                toggleMenu(sortMenu, false);
+            });
+        });
+
+        const filterCheckboxes = document.querySelectorAll('.country-filter');
+        const filterApply = document.getElementById('filterApply');
+        const filterClear = document.getElementById('filterClear');
+
+        function applyFilter() {
+            const selectedCountries = Array.from(filterCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            rows.forEach(row => {
+                if (selectedCountries.length === 0 || selectedCountries.includes(row.dataset.country)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        filterApply.addEventListener('click', () => {
+            applyFilter();
+            toggleMenu(filterMenu, false);
+        });
+
+        filterClear.addEventListener('click', () => {
+            filterCheckboxes.forEach(cb => cb.checked = false);
+            applyFilter();
+        });
     </script>
 </body>
 </html>
