@@ -3,164 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Clients</title>
-        <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .action-group {
-            display: flex;
-            gap: 12px;
-        }
-        .action-button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            background-color: #007BFF;
-            color: #fff;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .action-button:hover {
-            background-color: #0056b3;
-        }
-        .dropdown {
-            position: relative;
-        }
-        .dropdown-menu {
-            position: absolute;
-            top: calc(100% + 4px);
-            right: 0;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            padding: 12px;
-            min-width: 220px;
-            z-index: 10;
-            display: none;
-        }
-        .dropdown-menu button,
-        .dropdown-menu label {
-            width: 100%;
-            text-align: left;
-        }
-        .dropdown-option {
-            padding: 8px 10px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        .dropdown-option:hover {
-            background-color: #f3f3f3;
-        }
-        .filter-title {
-            font-weight: 600;
-            margin-top: 0;
-        }
-        .filter-options {
-            max-height: 200px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .filter-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        .filter-actions button {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .filter-actions button:first-child {
-            background-color: #007BFF;
-            color: white;
-        }
-        .filter-actions button:last-child {
-            background-color: #e0e0e0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-        .details-button {
-            padding: 6px 12px;
-            border: none;
-            background-color: #007BFF;
-            color: #fff;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        .details-button:hover {
-            background-color: #0056b3;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-        .modal-content {
-            background-color: #fff;
-            margin: 10% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 400px;
-            border-radius: 8px;
-            position: relative;
-        }
-        .close {
-            color: #aaa;
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .close:hover {
-            color: #000;
-        }
-        .modal-row {
-            margin-bottom: 10px;
-        }
-        .modal-row strong {
-            display: inline-block;
-            width: 130px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
 </head>
 <body>
-    <div class="page-header">
-        <h1>Clients</h1>
-        <div class="action-group">
+
+    <div class="clients-container">
+        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+
+        <div class="page-title">
+            <h1>Clients</h1>
+        </div>
+
+            <div class="action-group">
             <div class="dropdown">
                 <button class="action-button" id="sortButton">Sort</button>
                 <div class="dropdown-menu" id="sortMenu">
@@ -187,46 +41,50 @@
                 </div>
             </div>
         </div>
-    </div>
-    <table id="clientsTable">
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Country</th>
-            <th>Total Revenue</th>
-            <th>Total Production Cost</th>
-            <th>Total Transport Cost</th>
-            <th>Total Storage Cost</th>
-            <th>Details</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for c in clients %}
-        {% set totals = client_totals.get(c.CLIENT_ID) %}
-        {% set client_data = {
-            'CLIENT_ID': c.CLIENT_ID,
-            'Postcode': c.Postcode,
-            'Stad': c.city,
-            'Straat': c.street,
-            'Nr': c.housenr,
-            'BTW_VAT': c.BTW_VAT,
-            'Naam': c.Name,
-            'Land': c.Country
-        } %}
-        <tr class="client-row" data-name="{{ c.Name }}" data-country="{{ c.Country }}" data-revenue="{{ totals.total_revenue | default(0) }}">
-            <td>{{ c.Name }}</td>
-            <td>{{ c.Country }}</td>
-            <td>{{ totals.total_revenue | round(2) }}</td>
-            <td>{{ totals.total_production_cost | round(2) }}</td>
-            <td>{{ totals.total_transport_cost | round(2) }}</td>
-            <td>{{ totals.total_storage_cost | round(2) }}</td>
-            <td>
-                <button class="details-button" data-client='{{ client_data | tojson | safe }}'>Bekijk</button>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+        </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="clientsTable">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Country</th>
+                    <th>Total Revenue</th>
+                    <th>Total Production Cost</th>
+                    <th>Total Transport Cost</th>
+                    <th>Total Storage Cost</th>
+                    <th>Details</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for c in clients %}
+                {% set totals = client_totals.get(c.CLIENT_ID) %}
+                {% set client_data = {
+                    'CLIENT_ID': c.CLIENT_ID,
+                    'Postcode': c.Postcode,
+                    'Stad': c.city,
+                    'Straat': c.street,
+                    'Nr': c.housenr,
+                    'BTW_VAT': c.BTW_VAT,
+                    'Naam': c.Name,
+                    'Land': c.Country
+                } %}
+                <tr class="client-row" data-name="{{ c.Name }}" data-country="{{ c.Country }}" data-revenue="{{ totals.total_revenue | default(0) }}">
+                    <td>{{ c.Name }}</td>
+                    <td>{{ c.Country }}</td>
+                    <td>{{ totals.total_revenue | round(2) }}</td>
+                    <td>{{ totals.total_production_cost | round(2) }}</td>
+                    <td>{{ totals.total_transport_cost | round(2) }}</td>
+                    <td>{{ totals.total_storage_cost | round(2) }}</td>
+                    <td>
+                        <button class="details-button" data-client='{{ client_data | tojson | safe }}'>Bekijk</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
     <div id="clientModal" class="modal">
         <div class="modal-content">
@@ -243,8 +101,9 @@
         </div>
     </div>
 
-    <br>
-    <button onclick="window.location.href='/home'">Terug</button>
+        <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+
+    </div>
     
     <script>
         const modal = document.getElementById('clientModal');
