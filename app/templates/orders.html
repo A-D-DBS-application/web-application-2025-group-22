@@ -3,35 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <title>Orders Lijst</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
+    <style>
+        .orders-layout {
+            width: min(1500px, 98vw);
+        }
+
+        .orders-layout .table-wrapper {
+            padding: 32px;
+        }
+
+        .orders-layout .logo {
+            width: 80px;
+            margin: 0 0 18px 0;
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .orders-table th,
+        .orders-table td {
+            border: 1px solid #d0d9e6;
+            padding: 16px 18px;
+        }
+
+        .orders-table th {
+            font-size: 130%;
+            padding: 21px 24px;
+        }
+
+        .orders-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        .orders-table tbody tr:nth-child(even) {
+            background-color: #f5faff;
+        }
+
+        .page-title {
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
-    <h1>Orders Lijst</h1>
-    <table border="1" cellpadding="5">
-        <tr>
-            <th>ORDER_NR</th>
-            <th>FACTUUR_NR</th>
-            <th>CLIENT_ID</th>
-            <th>SUPPLIER_ID</th>
-            <th>PRODUCT_NR</th>
-            <th>quantity</th>
-            <th>total sell price</th>
-            <th>date</th>
-        </tr>
-        {% for o in orders %}
-        <tr>
-            <td>{{ o.ORDER_NR }}</td>
-            <td>{{ o.FACTUUR_NR }}</td>
-            <td>{{ o.CLIENT_ID }}</td>
-            <td>{{ o.SUPPLIER_ID }}</td>
-            <td>{{ o.PRODUCT_NR }}</td>
-            <td>{{ o.quantity }}</td>
-            <td>{{ o.total_sell_price }}</td>
-            <td>{{ o.date }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+   
+    <div class="clients-container orders-layout">
+        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
 
-    <br>
-    <button onclick="window.location.href='/home'">Terug</button>
+        <div class="page-title">
+            <h1>Orders Lijst</h1>
+            <p>Overzicht van alle orders</p>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>ORDER_NR</th>
+                        <th>FACTUUR_NR</th>
+                        <th>CLIENT_ID</th>
+                        <th>SUPPLIER_ID</th>
+                        <th>PRODUCT_NR</th>
+                        <th>Quantity</th>
+                        <th>Total Sell Price</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td>{{ o.ORDER_NR }}</td>
+                        <td>{{ o.FACTUUR_NR }}</td>
+                        <td>{{ o.CLIENT_ID }}</td>
+                        <td>{{ o.SUPPLIER_ID }}</td>
+                        <td>{{ o.PRODUCT_NR }}</td>
+                        <td>{{ o.quantity }}</td>
+                        <td>{{ o.total_sell_price }}</td>
+                        <td>{{ o.date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+    </div>
 </body>
 </html>
