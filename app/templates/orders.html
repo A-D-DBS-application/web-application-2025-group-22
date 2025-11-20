@@ -45,6 +45,20 @@
         .page-title {
             text-align: left;
         }
+        
+        .orders-layout .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: nowrap;
+        }
+
+        .orders-layout .action-group {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+        }
     </style>
 </head>
 <body>
@@ -52,9 +66,60 @@
     <div class="clients-container orders-layout">
         <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
 
-        <div class="page-title">
-            <h1>Orders Lijst</h1>
-            <p>Overzicht van alle orders</p>
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Orders Lijst</h1>
+                <p>Overzicht van alle orders</p>
+            </div>
+
+            <div class="action-group">
+                <div class="dropdown">
+                    <button class="action-button" id="sortButton">Sorteer</button>
+                    <div class="dropdown-menu" id="sortMenu">
+                        <button class="dropdown-option" data-sort="asc">Klein naar groot</button>
+                        <button class="dropdown-option" data-sort="desc">Groot naar klein</button>
+                        <button class="dropdown-option" data-sort="alpha">Alfabetisch</button>
+                        <button class="dropdown-option" data-sort="alpha-desc">Omgekeerd alfabetisch</button>
+                        <button class="dropdown-option" data-sort="other">Andere</button>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <button class="action-button" id="filterButton">Filter</button>
+                    <div class="dropdown-menu filter-menu" id="filterMenu">
+                        <p class="filter-title">Filter op kolom</p>
+                        <div class="filter-options">
+                            <label>ORDER_NR
+                                <input type="text" id="filterOrderNr" placeholder="Bijv. 1001">
+                            </label>
+                            <label>FACTUUR_NR
+                                <input type="text" id="filterFactuurNr" placeholder="Bijv. F-200">
+                            </label>
+                            <label>CLIENT_ID
+                                <input type="text" id="filterClientId" placeholder="Bijv. C-15">
+                            </label>
+                            <label>SUPPLIER_ID
+                                <input type="text" id="filterSupplierId" placeholder="Bijv. S-8">
+                            </label>
+                            <label>PRODUCT_NR
+                                <input type="text" id="filterProductNr" placeholder="Bijv. P-120">
+                            </label>
+                            <label>Quantity
+                                <input type="text" id="filterQuantity" placeholder="Bijv. 25">
+                            </label>
+                            <label>Total Sell Price
+                                <input type="text" id="filterSellPrice" placeholder="Bijv. 199.99">
+                            </label>
+                            <label>Date
+                                <input type="text" id="filterDate" placeholder="YYYY-MM-DD">
+                            </label>
+                        </div>
+                        <div class="filter-actions">
+                            <button type="button" id="filterApply">Apply</button>
+                            <button type="button" id="filterClear">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="table-wrapper">
@@ -73,7 +138,15 @@
                 </thead>
                 <tbody>
                     {% for o in orders %}
-                    <tr>
+                    <tr class="order-row"
+                        data-order-nr="{{ o.ORDER_NR }}"
+                        data-factuur-nr="{{ o.FACTUUR_NR }}"
+                        data-client-id="{{ o.CLIENT_ID }}"
+                        data-supplier-id="{{ o.SUPPLIER_ID }}"
+                        data-product-nr="{{ o.PRODUCT_NR }}"
+                        data-quantity="{{ o.quantity }}"
+                        data-sell-price="{{ o.total_sell_price }}"
+                        data-date="{{ o.date }}">
                         <td>{{ o.ORDER_NR }}</td>
                         <td>{{ o.FACTUUR_NR }}</td>
                         <td>{{ o.CLIENT_ID }}</td>
@@ -91,4 +164,105 @@
         <button class="back-button" onclick="window.location.href='/home'">Terug</button>
     </div>
 </body>
+
+<script>
+    const sortButton = document.getElementById('sortButton');
+    const sortMenu = document.getElementById('sortMenu');
+    const filterButton = document.getElementById('filterButton');
+    const filterMenu = document.getElementById('filterMenu');
+    const filterApply = document.getElementById('filterApply');
+    const filterClear = document.getElementById('filterClear');
+    const tableBody = document.querySelector('.orders-table tbody');
+    const orderRows = Array.from(document.querySelectorAll('.order-row'));
+    const defaultOrder = [...orderRows];
+
+    function toggleMenu(menu, show) {
+        menu.style.display = show ? 'block' : 'none';
+    }
+
+    sortButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isVisible = sortMenu.style.display === 'block';
+        toggleMenu(filterMenu, false);
+        toggleMenu(sortMenu, !isVisible);
+    });
+
+    filterButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isVisible = filterMenu.style.display === 'block';
+        toggleMenu(sortMenu, false);
+        toggleMenu(filterMenu, !isVisible);
+    });
+
+    document.addEventListener('click', () => {
+        toggleMenu(sortMenu, false);
+        toggleMenu(filterMenu, false);
+    });
+
+    sortMenu.addEventListener('click', (event) => event.stopPropagation());
+    filterMenu.addEventListener('click', (event) => event.stopPropagation());
+
+    function applySort(type) {
+        let sortedRows = [...orderRows];
+
+        if (type === 'asc') {
+            sortedRows.sort((a, b) => Number(a.dataset.orderNr) - Number(b.dataset.orderNr));
+        } else if (type === 'desc') {
+            sortedRows.sort((a, b) => Number(b.dataset.orderNr) - Number(a.dataset.orderNr));
+        } else if (type === 'alpha') {
+            sortedRows.sort((a, b) => a.dataset.factuurNr.localeCompare(b.dataset.factuurNr));
+        } else if (type === 'alpha-desc') {
+            sortedRows.sort((a, b) => b.dataset.factuurNr.localeCompare(a.dataset.factuurNr));
+        } else {
+            sortedRows = [...defaultOrder];
+        }
+
+        sortedRows.forEach(row => tableBody.appendChild(row));
+    }
+
+    document.querySelectorAll('#sortMenu .dropdown-option').forEach(option => {
+        option.addEventListener('click', () => {
+            const sortType = option.dataset.sort;
+            applySort(sortType);
+            toggleMenu(sortMenu, false);
+        });
+    });
+
+    function applyFilter() {
+        const filters = {
+            order: document.getElementById('filterOrderNr').value.trim().toLowerCase(),
+            factuur: document.getElementById('filterFactuurNr').value.trim().toLowerCase(),
+            client: document.getElementById('filterClientId').value.trim().toLowerCase(),
+            supplier: document.getElementById('filterSupplierId').value.trim().toLowerCase(),
+            product: document.getElementById('filterProductNr').value.trim().toLowerCase(),
+            quantity: document.getElementById('filterQuantity').value.trim().toLowerCase(),
+            sellPrice: document.getElementById('filterSellPrice').value.trim().toLowerCase(),
+            date: document.getElementById('filterDate').value.trim().toLowerCase()
+        };
+
+        orderRows.forEach(row => {
+            const matches =
+                (!filters.order || row.dataset.orderNr.toLowerCase().includes(filters.order)) &&
+                (!filters.factuur || row.dataset.factuurNr.toLowerCase().includes(filters.factuur)) &&
+                (!filters.client || row.dataset.clientId.toLowerCase().includes(filters.client)) &&
+                (!filters.supplier || row.dataset.supplierId.toLowerCase().includes(filters.supplier)) &&
+                (!filters.product || row.dataset.productNr.toLowerCase().includes(filters.product)) &&
+                (!filters.quantity || row.dataset.quantity.toLowerCase().includes(filters.quantity)) &&
+                (!filters.sellPrice || row.dataset.sellPrice.toLowerCase().includes(filters.sellPrice)) &&
+                (!filters.date || row.dataset.date.toLowerCase().includes(filters.date));
+
+            row.style.display = matches ? '' : 'none';
+        });
+    }
+
+    filterApply.addEventListener('click', () => {
+        applyFilter();
+        toggleMenu(filterMenu, false);
+    });
+
+    filterClear.addEventListener('click', () => {
+        document.querySelectorAll('#filterMenu input').forEach(input => input.value = '');
+        applyFilter();
+    });
+</script>
 </html>
