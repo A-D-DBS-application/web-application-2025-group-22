@@ -3,51 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <title>Clients</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}?v=2">
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
 </head>
+
 <body>
 
-<div class="page-header">
+    <div class="clients-container">
 
-    <!-- LOGO + TITEL ONDER ELKAAR -->
-    <div class="title-block">
-        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
-        <h1 class="clients-title">Clients</h1>
-    </div>
+        <!-- HEADER MET LOGO + TITEL + SORT/FILTER -->
+        <div class="page-header">
 
-    <!-- SORT & FILTER KNOPPEN BLIJVEN RECHTS -->
-    <div class="action-group">
-        <div class="dropdown">
-            <button class="action-button" id="sortButton">Sort</button>
-            <div class="dropdown-menu" id="sortMenu">
-                <button class="dropdown-option" data-sort="revenue">Total Revenue (High to Low)</button>
-                <button class="dropdown-option" data-sort="alphabetical">Alphabetical (A-Z)</button>
+            <!-- LOGO -->
+            <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+
+            <!-- TITEL -->
+            <div class="page-title">
+                <h1>Clients</h1>
             </div>
-        </div>
 
-            <div class="dropdown">
-                <button class="action-button" id="filterButton">Filter</button>
-                <div class="dropdown-menu filter-menu" id="filterMenu">
-                    <p class="filter-title">Select countries</p>
-                    <div class="filter-options">
-                        {% for country in countries %}
-                        <label>
-                            <input type="checkbox" class="country-filter" value="{{ country }}" checked>
-                            {{ country }}
-                        </label>
-                        {% endfor %}
-                    </div>
-                    <div class="filter-actions">
-                        <button type="button" id="filterApply">Apply</button>
-                        <button type="button" id="filterClear">Clear</button>
+            <!-- SORT & FILTER GROEP -->
+            <div class="action-group">
+
+                <!-- Sorteer-knop -->
+                <div class="dropdown">
+                    <button class="action-button" id="sortButton">Sort</button>
+                    <div class="dropdown-menu" id="sortMenu">
+                        <button class="dropdown-option" data-sort="revenue">Total Revenue (High to Low)</button>
+                        <button class="dropdown-option" data-sort="alphabetical">Alphabetical (A-Z)</button>
                     </div>
                 </div>
+
+                <!-- Filter-knop -->
+                <div class="dropdown">
+                    <button class="action-button" id="filterButton">Filter</button>
+                    <div class="dropdown-menu filter-menu" id="filterMenu">
+                        <p class="filter-title">Select countries</p>
+                        <div class="filter-options">
+                            {% for country in countries %}
+                            <label>
+                                <input type="checkbox" class="country-filter" value="{{ country }}" checked>
+                                {{ country }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <div class="filter-actions">
+                            <button type="button" id="filterApply">Apply</button>
+                            <button type="button" id="filterClear">Clear</button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
-        </div>
+
+        <!-- TERUG-KNOP BOVENAAN -->
+        <div style="text-align:right; margin-bottom: 15px;">
+            <button class="back-button" onclick="window.location.href='/home'">Terug</button>
         </div>
 
+        <!-- TABEL -->
         <div class="table-wrapper">
             <table id="clientsTable">
                 <thead>
@@ -90,10 +104,14 @@
             </table>
         </div>
 
+    </div>
+
+    <!-- MODAL -->
     <div id="clientModal" class="modal">
         <div class="modal-content">
             <span class="close" id="modalClose">&times;</span>
             <h2>Client Details</h2>
+
             <div class="modal-row"><strong>CLIENT_ID:</strong> <span id="modalClientId"></span></div>
             <div class="modal-row"><strong>Name:</strong> <span id="modalName"></span></div>
             <div class="modal-row"><strong>Country:</strong> <span id="modalCountry"></span></div>
@@ -105,13 +123,12 @@
         </div>
     </div>
 
-        <button class="back-button" onclick="window.location.href='/home'">Terug</button>
-
-    </div>
-    
+    <!-- SCRIPT -->
     <script>
+        /* ========= MODAL ========= */
         const modal = document.getElementById('clientModal');
         const closeBtn = document.getElementById('modalClose');
+
         const modalFields = {
             CLIENT_ID: document.getElementById('modalClientId'),
             Naam: document.getElementById('modalName'),
@@ -135,16 +152,10 @@
             });
         });
 
-        closeBtn.onclick = function() {
-            modal.style.display = 'none';
-        };
+        closeBtn.onclick = () => modal.style.display = 'none';
+        window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
 
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-        };
-
+        /* ========= SORT & FILTER ========= */
         const sortButton = document.getElementById('sortButton');
         const sortMenu = document.getElementById('sortMenu');
         const filterButton = document.getElementById('filterButton');
@@ -156,18 +167,16 @@
             menu.style.display = show ? 'block' : 'none';
         }
 
-        sortButton.addEventListener('click', (event) => {
-            event.stopPropagation();
-            const isVisible = sortMenu.style.display === 'block';
+        sortButton.addEventListener('click', e => {
+            e.stopPropagation();
             toggleMenu(filterMenu, false);
-            toggleMenu(sortMenu, !isVisible);
+            toggleMenu(sortMenu, sortMenu.style.display !== 'block');
         });
 
-        filterButton.addEventListener('click', (event) => {
-            event.stopPropagation();
-            const isVisible = filterMenu.style.display === 'block';
+        filterButton.addEventListener('click', e => {
+            e.stopPropagation();
             toggleMenu(sortMenu, false);
-            toggleMenu(filterMenu, !isVisible);
+            toggleMenu(filterMenu, filterMenu.style.display !== 'block');
         });
 
         document.addEventListener('click', () => {
@@ -175,51 +184,37 @@
             toggleMenu(filterMenu, false);
         });
 
-        sortMenu.addEventListener('click', (event) => event.stopPropagation());
-        filterMenu.addEventListener('click', (event) => event.stopPropagation());
-
         document.querySelectorAll('#sortMenu .dropdown-option').forEach(option => {
             option.addEventListener('click', () => {
-                const sortType = option.dataset.sort;
-                const sortedRows = [...rows];
-                if (sortType === 'revenue') {
-                    sortedRows.sort((a, b) => parseFloat(b.dataset.revenue) - parseFloat(a.dataset.revenue));
-                } else {
-                    sortedRows.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
-                }
-                sortedRows.forEach(row => tableBody.appendChild(row));
+                const type = option.dataset.sort;
+                const sorted = [...rows];
+
+                if (type === 'revenue')
+                    sorted.sort((a, b) => b.dataset.revenue - a.dataset.revenue);
+                else
+                    sorted.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
+
+                sorted.forEach(r => tableBody.appendChild(r));
                 toggleMenu(sortMenu, false);
             });
         });
 
+        /* FILTER */
         const filterCheckboxes = document.querySelectorAll('.country-filter');
         const filterApply = document.getElementById('filterApply');
         const filterClear = document.getElementById('filterClear');
 
         function applyFilter() {
-            const selectedCountries = Array.from(filterCheckboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value);
-
+            const selected = [...filterCheckboxes].filter(cb => cb.checked).map(cb => cb.value);
             rows.forEach(row => {
-                if (selectedCountries.length === 0 || selectedCountries.includes(row.dataset.country)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+                row.style.display = selected.includes(row.dataset.country) ? '' : 'none';
             });
         }
 
-        filterApply.addEventListener('click', () => {
-            applyFilter();
-            toggleMenu(filterMenu, false);
-        });
+        filterApply.onclick = () => { applyFilter(); toggleMenu(filterMenu, false); };
+        filterClear.onclick = () => { filterCheckboxes.forEach(cb => cb.checked = false); applyFilter(); };
 
-        filterClear.addEventListener('click', () => {
-            filterCheckboxes.forEach(cb => cb.checked = false);
-            applyFilter();
-        });
     </script>
+
 </body>
 </html>
-

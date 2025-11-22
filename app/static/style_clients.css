@@ -70,20 +70,21 @@ body {
     position: relative;
 }
 
+
 .dropdown-menu {
     position: absolute;
     top: calc(100% + 5px);
-    right: 0;        /* FIX: menu opent rechts en blijft zichtbaar */
-    left: auto;      
-
+    right: 0;          /* ✔ opent mooi binnen het scherm */
+    left: auto;        /* ✔ voorkomt dat menu naar links springt */
     background: #fffdf9;
-    border-radius: 12px;
-    padding: 15px;
-    width: 240px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    border-radius: 14px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+    padding: 16px;
+    min-width: 240px;
+    z-index: 100;
     display: none;
-    z-index: 50;
 }
+
 
 
 /* ----------------------------------------------------
