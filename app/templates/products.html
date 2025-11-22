@@ -2,29 +2,62 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Product Lijst</title>
+    <title>Producten Lijst</title>
+
+    <!-- Zelfde stijl als Clients / Orders / Webusers -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
 </head>
+
 <body>
-    <h1>Product Lijst</h1>
-    <table border="1" cellpadding="5">
-        <tr>
-            <th>PRODUCT_NR</th>
-            <th>Naam</th>
-            <th>Unit volume</th>
-            <th>Unit cost</th>
-            <th>SUPPLIER_ID</th>
-        </tr>
-        {% for p in products %}
-        <tr>
-            <td>{{ p.PRODUCT_NR }}</td>
-            <td>{{ p.Name }}</td>
-            <td>{{ p.Unit_volume }}</td>
-            <td>{{ p.Unit_cost }}</td>
-            <td>{{ p.SUPPLIER_ID }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <br>
-    <button onclick="window.location.href='/home'">Terug</button>
+
+    <div class="clients-container">
+
+        <!-- HEADER MET LOGO EN TITEL -->
+        <div class="page-header">
+
+            <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+
+            <div class="page-title">
+                <h1>Producten</h1>
+            </div>
+
+            <div class="action-group">
+                <!-- Leeg, maar blijft staan voor uniformiteit -->
+            </div>
+
+        </div>
+
+        <!-- PRODUCT TABEL -->
+        <div class="table-wrapper">
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>PRODUCT_NR</th>
+                        <th>Naam</th>
+                        <th>Unit Volume</th>
+                        <th>Unit Cost</th>
+                        <th>SUPPLIER_ID</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td>{{ p.PRODUCT_NR }}</td>
+                        <td>{{ p.Name }}</td>
+                        <td>{{ p.Unit_volume }}</td>
+                        <td>{{ p.Unit_cost }}</td>
+                        <td>{{ p.SUPPLIER_ID }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+
+    </div>
+
 </body>
 </html>
+

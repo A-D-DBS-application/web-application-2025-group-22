@@ -116,8 +116,9 @@ def clients():
 # 👥 Webusers-overzichtspagina
 @main.route('/webusers')
 def webusers():
-    users = WEBUSER.query.all()
-    return render_template('webusers.html', users=users)
+    webusers_list = WEBUSER.query.all()
+    return render_template('webusers.html', webusers=webusers_list)
+
 
 # 👥 Suppliers-overzichtspagina
 @main.route('/suppliers')

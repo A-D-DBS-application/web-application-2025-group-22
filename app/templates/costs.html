@@ -3,33 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <title>Costs Lijst</title>
-</head>
-<body>
-    <h1>Costs Lijst</h1>
-    <table border="1" cellpadding="5">
-        <tr>
-            <th>FACTUUR_NR</th>
-            <th>aantal stuks</th>
-            <th>Transport price per unit</th>
-            <th>Total transport cost</th>
-            <th>Stockage price per unit</th>
-            <th>Total stockage cost</th>
-            <th>Total cost</th>
-        </tr>
-        {% for c in costs %}
-        <tr>
-            <td>{{ c.FACTUUR_NR }}</td>
-            <td>{{ c.aantal_stuks }}</td>
-            <td>{{ c.Transport_price_per_unit }}</td>
-            <td>{{ c.Total_transport_cost }}</td>
-            <td>{{ c.Stockage_price_per_unit }}</td>
-            <td>{{ c.Total_stockage_cost }}</td>
-            <td>{{ c.Total_cost }}</td>
-        </tr>
-        {% endfor %}
-    </table>
 
-    <br>
-    <button onclick="window.location.href='/home'">Terug</button>
+    <!-- Zelfde stijlvolle layout als Clients / Orders / Products -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
+</head>
+
+<body>
+
+    <div class="clients-container">
+
+        <!-- HEADER -->
+        <div class="page-header">
+
+            <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+
+            <div class="page-title">
+                <h1>Costs</h1>
+            </div>
+
+            <div class="action-group">
+                <!-- Niet nodig maar blijft voor uniformiteit -->
+            </div>
+
+        </div>
+
+        <!-- TABEL -->
+         <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+        <div class="table-wrapper">
+            <table class="costs-table">
+                <thead>
+                    <tr>
+                        <th>FACTUUR_NR</th>
+                        <th>Aantal Stuks</th>
+                        <th>Transportprijs per eenheid</th>
+                        <th>Totale Transportkost</th>
+                        <th>Stockageprijs per eenheid</th>
+                        <th>Totale Stockagekost</th>
+                        <th>Totale Kost</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for c in costs %}
+                    <tr>
+                        <td>{{ c.FACTUUR_NR }}</td>
+                        <td>{{ c.aantal_stuks }}</td>
+                        <td>{{ c.Transport_price_per_unit }}</td>
+                        <td>{{ c.Total_transport_cost }}</td>
+                        <td>{{ c.Stockage_price_per_unit }}</td>
+                        <td>{{ c.Total_stockage_cost }}</td>
+                        <td>{{ c.Total_cost }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        
+
+    </div>
+
 </body>
 </html>
+

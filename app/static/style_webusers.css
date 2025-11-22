@@ -1,0 +1,125 @@
+/* ====================================
+   PAGINA ACHTERGROND
+   ==================================== */
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background: linear-gradient(to bottom right, #f8e7cf, #e8d1b5);
+    font-family: 'Inter', sans-serif;
+    padding-top: 50px;
+    color: #6e3c1b;
+}
+
+
+/* ====================================
+   CONTAINER
+   ==================================== */
+
+.users-container {
+    background: #fff8f0;
+    padding: 45px 55px 55px;
+    border-radius: 25px;
+    width: min(900px, 90vw);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    animation: fadeIn 0.6s ease-in-out;
+    text-align: center;
+}
+
+
+/* ====================================
+   LOGO + TITEL
+   ==================================== */
+
+.header-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.logo {
+    width: 120px;
+    margin-bottom: 10px;
+}
+
+.title {
+    font-size: 34px;
+    margin: 0;
+    color: #6e3c1b;
+    font-weight: 700;
+}
+
+
+/* ====================================
+   TABEL
+   ==================================== */
+
+.table-wrapper {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 20px;
+    margin-top: 10px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16px;
+}
+
+.users-table th {
+    border-bottom: 2px solid #e1c8aa;
+    padding: 12px;
+    text-align: left;
+    color: #6e3c1b;
+    font-size: 18px;
+}
+
+.users-table td {
+    padding: 12px;
+}
+
+.users-table tbody tr:nth-child(even) {
+    background-color: #fff4e6;
+}
+
+.users-table tbody tr:hover {
+    background-color: #ffe7cb;
+}
+
+
+/* ====================================
+   TERUG KNOP
+   ==================================== */
+
+.back-button {
+    margin-top: 25px;
+    padding: 12px 20px;
+    border: none;
+    background: #a86b45;
+    color: white;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.back-button:hover {
+    background: #8c4e28;
+}
+
+
+/* ====================================
+   ANIMATIE
+   ==================================== */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}

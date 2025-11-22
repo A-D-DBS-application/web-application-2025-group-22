@@ -3,25 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <title>Clients</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}?v=2">
+
 </head>
 <body>
 
-    <div class="clients-container">
-        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+<div class="page-header">
 
-        <div class="page-title">
-            <h1>Clients</h1>
+    <!-- LOGO + TITEL ONDER ELKAAR -->
+    <div class="title-block">
+        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+        <h1 class="clients-title">Clients</h1>
+    </div>
+
+    <!-- SORT & FILTER KNOPPEN BLIJVEN RECHTS -->
+    <div class="action-group">
+        <div class="dropdown">
+            <button class="action-button" id="sortButton">Sort</button>
+            <div class="dropdown-menu" id="sortMenu">
+                <button class="dropdown-option" data-sort="revenue">Total Revenue (High to Low)</button>
+                <button class="dropdown-option" data-sort="alphabetical">Alphabetical (A-Z)</button>
+            </div>
         </div>
 
-            <div class="action-group">
-            <div class="dropdown">
-                <button class="action-button" id="sortButton">Sort</button>
-                <div class="dropdown-menu" id="sortMenu">
-                    <button class="dropdown-option" data-sort="revenue">Total Revenue (High to Low)</button>
-                    <button class="dropdown-option" data-sort="alphabetical">Alphabetical (A-Z)</button>
-                </div>
-            </div>
             <div class="dropdown">
                 <button class="action-button" id="filterButton">Filter</button>
                 <div class="dropdown-menu filter-menu" id="filterMenu">
@@ -218,3 +222,4 @@
     </script>
 </body>
 </html>
+
