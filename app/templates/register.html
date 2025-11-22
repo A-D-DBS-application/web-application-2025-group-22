@@ -1,32 +1,124 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Aanmelden</title>
-  </head>
-  <body>
-    <h1>Nieuwe gebruiker registreren</h1>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Registreren</title>
 
-    {% if message %}
-      <p style="color:red;">{{ message }}</p>
-    {% endif %}
+    <!-- Zelfde stijl als login -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
 
-    <form action="/register" method="post">
-      <label>Gebruikersnaam:</label>
-      <input type="text" name="username" required><br><br>
+    <style>
+        /* Achtergrond zoals login */
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom right, #f8e7cf, #e2c6a4);
+            overflow: hidden;
+        }
 
-      <label>Email:</label>
-      <input type="email" name="email" required><br><br>
+        /* Centrale kaart */
+        .register-container {
+            background: #fff8f0;
+            padding: 45px 55px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 450px;
+            text-align: center;
+            animation: fadeIn 0.6s ease-in-out;
+        }
 
-      <label>Bedrijf:</label>
-      <select name="supplier_id" required>
-        {% for supplier in suppliers %}
-          <option value="{{ supplier.SUPPLIER_ID }}">{{ supplier.name }}</option>
-        {% endfor %}
-      </select><br><br>
+        h1 {
+            color: #6e3c1b;
+            margin-bottom: 25px;
+        }
 
-      <button type="submit">Aanmelden</button>
-    </form>
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #6e3c1b;
+            text-align: left;
+        }
 
-    <p>Heb je al een account? <a href="/login">Log hier in</a></p>
-  </body>
+        input, select {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #d5b89f;
+            margin-top: 5px;
+            background: #fff3e6;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 25px;
+            border: none;
+            border-radius: 10px;
+            background-color: #a86b45;
+            color: #fff8f0;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background-color: #8c4e28;
+        }
+
+        .login-link {
+            margin-top: 20px;
+            display: block;
+            color: #6e3c1b;
+        }
+
+        .error-message {
+            color: red;
+            margin-bottom: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="register-container">
+
+        <h1>Registreren</h1>
+
+        {% if message %}
+            <p class="error-message">{{ message }}</p>
+        {% endif %}
+
+        <form action="/register" method="post">
+
+            <label>Gebruikersnaam:</label>
+            <input type="text" name="username" required>
+
+            <label>Email:</label>
+            <input type="email" name="email" required>
+
+            <label>Bedrijf:</label>
+            <select name="supplier_id" required>
+                {% for supplier in suppliers %}
+                    <option value="{{ supplier.SUPPLIER_ID }}">{{ supplier.name }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Account aanmaken</button>
+        </form>
+
+        <a class="login-link" href="/login">Heb je al een account? Log hier in.</a>
+    </div>
+
+</body>
 </html>
