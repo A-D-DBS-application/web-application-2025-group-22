@@ -36,18 +36,22 @@
                         <th>Naam</th>
                         <th>Unit Volume</th>
                         <th>Unit Cost</th>
+                        <th>Sell Price</th>
+                        <th>BRAND</th>
                         <th>SUPPLIER_ID</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    {% for p in products %}
+                    {% for product, brand in products %}
                     <tr>
-                        <td>{{ p.PRODUCT_NR }}</td>
-                        <td>{{ p.Name }}</td>
-                        <td>{{ p.Unit_volume }}</td>
-                        <td>{{ p.Unit_cost }}</td>
-                        <td>{{ p.SUPPLIER_ID }}</td>
+                        <td>{{ product.PRODUCT_NR }}</td>
+                        <td>{{ product.Name }}</td>
+                        <td>{{ product.Unit_volume }}</td>
+                        <td>{{ product.Unit_cost }}</td>
+                        <td>{{ product.Sell_price_per_product }}</td>
+                        <td>{{ brand.Name if brand else '-' }}</td>
+                        <td>{{ product.SUPPLIER_ID }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -60,4 +64,5 @@
 
 </body>
 </html>
+
 

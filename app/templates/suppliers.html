@@ -21,10 +21,9 @@
             </div>
 
             <div class="action-group">
-                <!-- (Geen sort/filter nodig maar laten bestaan voor uniformiteit) -->
+                <!-- (Geen sort/filter nodig maar blijft voor uniformiteit) -->
             </div>
         </div>
-
 
         <!-- Tabel -->
         <div class="table-wrapper">
@@ -37,8 +36,9 @@
                         <th>Postal Code</th>
                         <th>City</th>
                         <th>Street</th>
-                        <th>Housenumber</th>
+                        <th>House number</th>
                         <th>VAT/BTW</th>
+                        <th>Email</th>
                         <th>Phone</th>
                     </tr>
                 </thead>
@@ -47,13 +47,14 @@
                     {% for s in suppliers %}
                     <tr>
                         <td>{{ s.SUPPLIER_ID }}</td>
-                        <td>{{ s.name }}</td>
-                        <td>{{ s.country }}</td>
+                        <td>{{ s.Name }}</td>
+                        <td>{{ s.Country }}</td>
                         <td>{{ s.Postal_code }}</td>
-                        <td>{{ s.city }}</td>
-                        <td>{{ s.street }}</td>
-                        <td>{{ s.housenumber }}</td>
+                        <td>{{ s.City }}</td>
+                        <td>{{ s.Street }}</td>
+                        <td>{{ s.House_number }}</td>
                         <td>{{ s.VAT_BTW }}</td>
+                        <td>{{ s.Email }}</td>
                         <td>{{ s.Phone_nr }}</td>
                     </tr>
                     {% endfor %}
@@ -67,3 +68,4 @@
 
 </body>
 </html>
+

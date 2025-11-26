@@ -2,219 +2,186 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Clients</title>
+    <title>Clients Lijst</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
+    <style>
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 12px;
+            z-index: 10;
+        }
+        .dropdown-option { display: block; margin: 6px 0; cursor: pointer; }
+        .filter-options label { display: block; margin-bottom: 8px; }
+    </style>
 </head>
 
 <body>
 
-    <div class="clients-container">
+<div class="clients-container">
 
-        <!-- HEADER MET LOGO + TITEL + SORT/FILTER -->
-        <div class="page-header">
+    <div class="page-header">
+        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
 
-            <!-- LOGO -->
-            <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+        <h1>Clients Lijst</h1>
 
-            <!-- TITEL -->
-            <div class="page-title">
-                <h1>Clients</h1>
+        <div class="action-group">
+            <!-- SORT -->
+            <div class="dropdown">
+                <button class="action-button" id="sortButton">Sorteer</button>
+                <div class="dropdown-menu" id="sortMenu">
+                    <button class="dropdown-option" data-sort="name-asc">Naam A → Z</button>
+                    <button class="dropdown-option" data-sort="name-desc">Naam Z → A</button>
+                    <button class="dropdown-option" data-sort="rev-asc">Revenue klein → groot</button>
+                    <button class="dropdown-option" data-sort="rev-desc">Revenue groot → klein</button>
+                    <button class="dropdown-option" data-sort="default">Standaard</button>
+                </div>
             </div>
 
-            <!-- SORT & FILTER GROEP -->
-            <div class="action-group">
-
-                <!-- Sorteer-knop -->
-                <div class="dropdown">
-                    <button class="action-button" id="sortButton">Sort</button>
-                    <div class="dropdown-menu" id="sortMenu">
-                        <button class="dropdown-option" data-sort="revenue">Total Revenue (High to Low)</button>
-                        <button class="dropdown-option" data-sort="alphabetical">Alphabetical (A-Z)</button>
+            <!-- FILTER -->
+            <div class="dropdown">
+                <button class="action-button" id="filterButton">Filter</button>
+                <div class="dropdown-menu filter-menu" id="filterMenu">
+                    <p><strong>Filter op kolom</strong></p>
+                    <div class="filter-options">
+                        <label>Naam
+                            <input type="text" id="filterName">
+                        </label>
+                        <label>Land
+                            <input type="text" id="filterCountry">
+                        </label>
+                        <label>Min Revenue
+                            <input type="number" id="filterRevenueMin">
+                        </label>
+                        <label>Max Revenue
+                            <input type="number" id="filterRevenueMax">
+                        </label>
+                    </div>
+                    <div class="filter-actions">
+                        <button type="button" id="filterApply">Apply</button>
+                        <button type="button" id="filterClear">Clear</button>
                     </div>
                 </div>
-
-                <!-- Filter-knop -->
-                <div class="dropdown">
-                    <button class="action-button" id="filterButton">Filter</button>
-                    <div class="dropdown-menu filter-menu" id="filterMenu">
-                        <p class="filter-title">Select countries</p>
-                        <div class="filter-options">
-                            {% for country in countries %}
-                            <label>
-                                <input type="checkbox" class="country-filter" value="{{ country }}" checked>
-                                {{ country }}
-                            </label>
-                            {% endfor %}
-                        </div>
-                        <div class="filter-actions">
-                            <button type="button" id="filterApply">Apply</button>
-                            <button type="button" id="filterClear">Clear</button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
+    </div>
 
-        <!-- TERUG-KNOP BOVENAAN -->
-        <div style="text-align:right; margin-bottom: 15px;">
-            <button class="back-button" onclick="window.location.href='/home'">Terug</button>
-        </div>
-
-        <!-- TABEL -->
-        <div class="table-wrapper">
-            <table id="clientsTable">
-                <thead>
+    <!-- TABEL -->
+    <div class="table-wrapper">
+        <table id="clientsTable" class="webusers-table">
+            <thead>
                 <tr>
                     <th>Name</th>
                     <th>Country</th>
                     <th>Total Revenue</th>
-                    <th>Total Production Cost</th>
-                    <th>Total Transport Cost</th>
-                    <th>Total Storage Cost</th>
-                    <th>Details</th>
+                    <th>Production Cost</th>
+                    <th>Transport</th>
+                    <th>Storage</th>
+                    <th>Actie</th>
                 </tr>
-                </thead>
-                <tbody>
+            </thead>
+            <tbody>
                 {% for c in clients %}
-                {% set totals = client_totals.get(c.CLIENT_ID) %}
-                {% set client_data = {
-                    'CLIENT_ID': c.CLIENT_ID,
-                    'Postcode': c.Postcode,
-                    'Stad': c.city,
-                    'Straat': c.street,
-                    'Nr': c.housenr,
-                    'BTW_VAT': c.BTW_VAT,
-                    'Naam': c.Name,
-                    'Land': c.Country
-                } %}
-                <tr class="client-row" data-name="{{ c.Name }}" data-country="{{ c.Country }}" data-revenue="{{ totals.total_revenue | default(0) }}">
-                    <td>{{ c.Name }}</td>
-                    <td>{{ c.Country }}</td>
-                    <td>{{ totals.total_revenue | round(2) }}</td>
-                    <td>{{ totals.total_production_cost | round(2) }}</td>
-                    <td>{{ totals.total_transport_cost | round(2) }}</td>
-                    <td>{{ totals.total_storage_cost | round(2) }}</td>
-                    <td>
-                        <button class="details-button" data-client='{{ client_data | tojson | safe }}'>Bekijk</button>
-                    </td>
-                </tr>
+                    {% set totals = client_totals[c.CLIENT_ID] %}
+                    <tr class="client-row"
+                        data-name="{{ c.Name | lower }}"
+                        data-country="{{ c.Country | lower }}"
+                        data-revenue="{{ totals.total_revenue }}">
+                        
+                        <td>{{ c.Name }}</td>
+                        <td>{{ c.Country }}</td>
+                        <td>{{ totals.total_revenue }}</td>
+                        <td>{{ totals.total_production_cost }}</td>
+                        <td>{{ totals.total_transport_cost }}</td>
+                        <td>{{ totals.total_storage_cost }}</td>
+
+                        <td>
+                            <a href="{{ url_for('main.delete_client', id=c.CLIENT_ID) }}"
+                               onclick="return confirm('Zeker dat je deze client wil verwijderen?');"
+                               class="delete-btn">Delete</a>
+                        </td>
+                    </tr>
                 {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
+            </tbody>
+        </table>
     </div>
 
-    <!-- MODAL -->
-    <div id="clientModal" class="modal">
-        <div class="modal-content">
-            <span class="close" id="modalClose">&times;</span>
-            <h2>Client Details</h2>
+    <button class="back-button" onclick="window.location.href='/home'">Terug</button>
 
-            <div class="modal-row"><strong>CLIENT_ID:</strong> <span id="modalClientId"></span></div>
-            <div class="modal-row"><strong>Name:</strong> <span id="modalName"></span></div>
-            <div class="modal-row"><strong>Country:</strong> <span id="modalCountry"></span></div>
-            <div class="modal-row"><strong>Postcode:</strong> <span id="modalPostcode"></span></div>
-            <div class="modal-row"><strong>Stad:</strong> <span id="modalCity"></span></div>
-            <div class="modal-row"><strong>Straat:</strong> <span id="modalStreet"></span></div>
-            <div class="modal-row"><strong>Nr:</strong> <span id="modalNumber"></span></div>
-            <div class="modal-row"><strong>BTW/VAT:</strong> <span id="modalVat"></span></div>
-        </div>
-    </div>
+</div>
 
-    <!-- SCRIPT -->
-    <script>
-        /* ========= MODAL ========= */
-        const modal = document.getElementById('clientModal');
-        const closeBtn = document.getElementById('modalClose');
+<script>
+    const sortButton = document.getElementById("sortButton");
+    const sortMenu = document.getElementById("sortMenu");
+    const filterButton = document.getElementById("filterButton");
+    const filterMenu = document.getElementById("filterMenu");
 
-        const modalFields = {
-            CLIENT_ID: document.getElementById('modalClientId'),
-            Naam: document.getElementById('modalName'),
-            Land: document.getElementById('modalCountry'),
-            Postcode: document.getElementById('modalPostcode'),
-            Stad: document.getElementById('modalCity'),
-            Straat: document.getElementById('modalStreet'),
-            Nr: document.getElementById('modalNumber'),
-            BTW_VAT: document.getElementById('modalVat')
+    function toggle(menu) {
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+
+    sortButton.onclick = e => { e.stopPropagation(); toggle(sortMenu); filterMenu.style.display="none"; };
+    filterButton.onclick = e => { e.stopPropagation(); toggle(filterMenu); sortMenu.style.display="none"; };
+
+    document.onclick = () => { sortMenu.style.display="none"; filterMenu.style.display="none"; };
+
+    const tableBody = document.querySelector("#clientsTable tbody");
+    const rows = Array.from(document.querySelectorAll(".client-row"));
+    const defaultOrder = [...rows];
+
+    document.querySelectorAll("#sortMenu .dropdown-option").forEach(btn => {
+        btn.onclick = () => {
+            let type = btn.dataset.sort;
+            let sorted = [...rows];
+
+            if (type === "name-asc") {
+                sorted.sort((a,b)=>a.dataset.name.localeCompare(b.dataset.name));
+            } else if (type === "name-desc") {
+                sorted.sort((a,b)=>b.dataset.name.localeCompare(a.dataset.name));
+            } else if (type === "rev-asc") {
+                sorted.sort((a,b)=>a.dataset.revenue - b.dataset.revenue);
+            } else if (type === "rev-desc") {
+                sorted.sort((a,b)=>b.dataset.revenue - a.dataset.revenue);
+            } else {
+                sorted = defaultOrder;
+            }
+
+            sorted.forEach(r => tableBody.appendChild(r));
+            sortMenu.style.display = "none";
         };
+    });
 
-        document.querySelectorAll('.details-button').forEach(button => {
-            button.addEventListener('click', () => {
-                const clientData = JSON.parse(button.getAttribute('data-client'));
-                Object.entries(clientData).forEach(([key, value]) => {
-                    if (modalFields[key] !== undefined) {
-                        modalFields[key].textContent = value || '-';
-                    }
-                });
-                modal.style.display = 'block';
-            });
+    document.getElementById("filterApply").onclick = () => {
+        const name = document.getElementById("filterName").value.toLowerCase();
+        const country = document.getElementById("filterCountry").value.toLowerCase();
+        const revMin = document.getElementById("filterRevenueMin").value;
+        const revMax = document.getElementById("filterRevenueMax").value;
+
+        rows.forEach(r => {
+            const rn = r.dataset.name;
+            const rc = r.dataset.country;
+            const rr = Number(r.dataset.revenue);
+
+            const ok =
+                (!name || rn.includes(name)) &&
+                (!country || rc.includes(country)) &&
+                (!revMin || rr >= Number(revMin)) &&
+                (!revMax || rr <= Number(revMax));
+
+            r.style.display = ok ? "" : "none";
         });
 
-        closeBtn.onclick = () => modal.style.display = 'none';
-        window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+        filterMenu.style.display = "none";
+    };
 
-        /* ========= SORT & FILTER ========= */
-        const sortButton = document.getElementById('sortButton');
-        const sortMenu = document.getElementById('sortMenu');
-        const filterButton = document.getElementById('filterButton');
-        const filterMenu = document.getElementById('filterMenu');
-        const tableBody = document.querySelector('#clientsTable tbody');
-        const rows = Array.from(tableBody.querySelectorAll('.client-row'));
-
-        function toggleMenu(menu, show) {
-            menu.style.display = show ? 'block' : 'none';
-        }
-
-        sortButton.addEventListener('click', e => {
-            e.stopPropagation();
-            toggleMenu(filterMenu, false);
-            toggleMenu(sortMenu, sortMenu.style.display !== 'block');
-        });
-
-        filterButton.addEventListener('click', e => {
-            e.stopPropagation();
-            toggleMenu(sortMenu, false);
-            toggleMenu(filterMenu, filterMenu.style.display !== 'block');
-        });
-
-        document.addEventListener('click', () => {
-            toggleMenu(sortMenu, false);
-            toggleMenu(filterMenu, false);
-        });
-
-        document.querySelectorAll('#sortMenu .dropdown-option').forEach(option => {
-            option.addEventListener('click', () => {
-                const type = option.dataset.sort;
-                const sorted = [...rows];
-
-                if (type === 'revenue')
-                    sorted.sort((a, b) => b.dataset.revenue - a.dataset.revenue);
-                else
-                    sorted.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
-
-                sorted.forEach(r => tableBody.appendChild(r));
-                toggleMenu(sortMenu, false);
-            });
-        });
-
-        /* FILTER */
-        const filterCheckboxes = document.querySelectorAll('.country-filter');
-        const filterApply = document.getElementById('filterApply');
-        const filterClear = document.getElementById('filterClear');
-
-        function applyFilter() {
-            const selected = [...filterCheckboxes].filter(cb => cb.checked).map(cb => cb.value);
-            rows.forEach(row => {
-                row.style.display = selected.includes(row.dataset.country) ? '' : 'none';
-            });
-        }
-
-        filterApply.onclick = () => { applyFilter(); toggleMenu(filterMenu, false); };
-        filterClear.onclick = () => { filterCheckboxes.forEach(cb => cb.checked = false); applyFilter(); };
-
-    </script>
+    document.getElementById("filterClear").onclick = () => {
+        document.querySelectorAll("#filterMenu input").forEach(i => i.value = "");
+        rows.forEach(r => r.style.display = "");
+    };
+</script>
 
 </body>
 </html>

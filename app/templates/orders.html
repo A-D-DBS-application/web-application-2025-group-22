@@ -5,71 +5,35 @@
     <title>Orders Lijst</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
     <style>
-        .orders-layout {
-            width: min(1500px, 98vw);
-        }
+        .orders-layout { width: min(1500px, 98vw); }
+        .orders-layout .table-wrapper { padding: 32px; }
+        .orders-layout .logo { width: 80px; margin: 0 0 18px 0; }
 
-        .orders-layout .table-wrapper {
-            padding: 32px;
-        }
-
-        .orders-layout .logo {
-            width: 80px;
-            margin: 0 0 18px 0;
-        }
-
-        .orders-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .orders-table th,
-        .orders-table td {
+        .orders-table { width: 100%; border-collapse: collapse; }
+        .orders-table th, .orders-table td {
             border: 1px solid #d0d9e6;
             padding: 16px 18px;
         }
+        .orders-table th { font-size: 130%; padding: 21px 24px; }
+        .orders-table tbody tr:nth-child(odd) { background-color: #fff; }
+        .orders-table tbody tr:nth-child(even) { background-color: #f5faff; }
 
-        .orders-table th {
-            font-size: 130%;
-            padding: 21px 24px;
-        }
-
-        .orders-table tbody tr:nth-child(odd) {
-            background-color: #ffffff;
-        }
-
-        .orders-table tbody tr:nth-child(even) {
-            background-color: #f5faff;
-        }
-
-        .page-title {
-            text-align: left;
-        }
-        
         .orders-layout .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: nowrap;
+            display: flex; justify-content: space-between;
+            align-items: center; gap: 16px; flex-wrap: nowrap;
         }
-
         .orders-layout .action-group {
-            display: flex;
-            gap: 12px;
-            margin-left: auto;
+            display: flex; gap: 12px; margin-left: auto;
         }
     </style>
 </head>
+
 <body>
-   
     <div class="clients-container orders-layout">
         <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
 
         <div class="page-header">
-            <div class="page-title">
-                <h1>Orders Lijst</h1>
-            </div>
+            <div class="page-title"><h1>Orders Lijst</h1></div>
 
             <div class="action-group">
                 <div class="dropdown">
@@ -82,36 +46,55 @@
                         <button class="dropdown-option" data-sort="other">Andere</button>
                     </div>
                 </div>
+
                 <div class="dropdown">
                     <button class="action-button" id="filterButton">Filter</button>
                     <div class="dropdown-menu filter-menu" id="filterMenu">
                         <p class="filter-title">Filter op kolom</p>
                         <div class="filter-options">
+
+                            <label>ORDER_LINE_NR
+                                <input type="text" id="filterOrderLineNr" placeholder="Bijv. 10">
+                            </label>
+
                             <label>ORDER_NR
                                 <input type="text" id="filterOrderNr" placeholder="Bijv. 1001">
                             </label>
+
                             <label>FACTUUR_NR
                                 <input type="text" id="filterFactuurNr" placeholder="Bijv. F-200">
                             </label>
+
                             <label>CLIENT_ID
                                 <input type="text" id="filterClientId" placeholder="Bijv. C-15">
                             </label>
+
                             <label>SUPPLIER_ID
                                 <input type="text" id="filterSupplierId" placeholder="Bijv. S-8">
                             </label>
+
                             <label>PRODUCT_NR
                                 <input type="text" id="filterProductNr" placeholder="Bijv. P-120">
                             </label>
+
                             <label>Quantity
                                 <input type="text" id="filterQuantity" placeholder="Bijv. 25">
                             </label>
-                            <label>Total Sell Price
-                                <input type="text" id="filterSellPrice" placeholder="Bijv. 199.99">
+
+                            <label>Unit Price
+                                <input type="text" id="filterUnitPrice" placeholder="Bijv. 199.99">
                             </label>
-                            <label>Date
+
+                            <label>Currency
+                                <input type="text" id="filterCurrency" placeholder="Bijv. EUR">
+                            </label>
+
+                            <label>Order Date
                                 <input type="text" id="filterDate" placeholder="YYYY-MM-DD">
                             </label>
+
                         </div>
+
                         <div class="filter-actions">
                             <button type="button" id="filterApply">Apply</button>
                             <button type="button" id="filterClear">Clear</button>
@@ -123,46 +106,55 @@
 
         <div class="table-wrapper">
             <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+
             <table class="orders-table">
                 <thead>
                     <tr>
+                        <th>ORDER_LINE_NR</th>
                         <th>ORDER_NR</th>
                         <th>FACTUUR_NR</th>
                         <th>CLIENT_ID</th>
                         <th>SUPPLIER_ID</th>
                         <th>PRODUCT_NR</th>
                         <th>Quantity</th>
-                        <th>Total Sell Price</th>
-                        <th>Date</th>
+                        <th>Unit Price</th>
+                        <th>Currency</th>
+                        <th>Order Date</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    {% for o in orders %}
+                    {% for o in order_rows %}
                     <tr class="order-row"
+                        data-order-line-nr="{{ o.ORDER_LINE_NR or '' }}"
                         data-order-nr="{{ o.ORDER_NR }}"
                         data-factuur-nr="{{ o.FACTUUR_NR }}"
                         data-client-id="{{ o.CLIENT_ID }}"
                         data-supplier-id="{{ o.SUPPLIER_ID }}"
                         data-product-nr="{{ o.PRODUCT_NR }}"
-                        data-quantity="{{ o.quantity }}"
-                        data-sell-price="{{ o.total_sell_price }}"
-                        data-date="{{ o.date }}">
+                        data-quantity="{{ o.Quantity }}"
+                        data-unit-price="{{ o.Unit_price }}"
+                        data-currency="{{ o.Currency }}"
+                        data-date="{{ o.Order_date }}"
+                    >
+                        <td>{{ o.ORDER_LINE_NR }}</td>
                         <td>{{ o.ORDER_NR }}</td>
                         <td>{{ o.FACTUUR_NR }}</td>
                         <td>{{ o.CLIENT_ID }}</td>
                         <td>{{ o.SUPPLIER_ID }}</td>
                         <td>{{ o.PRODUCT_NR }}</td>
-                        <td>{{ o.quantity }}</td>
-                        <td>{{ o.total_sell_price }}</td>
-                        <td>{{ o.date }}</td>
+                        <td>{{ o.Quantity }}</td>
+                        <td>{{ o.Unit_price }}</td>
+                        <td>{{ o.Currency }}</td>
+                        <td>{{ o.Order_date }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
+
             </table>
         </div>
-
-        
     </div>
+
 </body>
 
 <script>
@@ -180,18 +172,16 @@
         menu.style.display = show ? 'block' : 'none';
     }
 
-    sortButton.addEventListener('click', (event) => {
-        event.stopPropagation();
-        const isVisible = sortMenu.style.display === 'block';
+    sortButton.addEventListener('click', e => {
+        e.stopPropagation();
         toggleMenu(filterMenu, false);
-        toggleMenu(sortMenu, !isVisible);
+        toggleMenu(sortMenu, sortMenu.style.display !== 'block');
     });
 
-    filterButton.addEventListener('click', (event) => {
-        event.stopPropagation();
-        const isVisible = filterMenu.style.display === 'block';
+    filterButton.addEventListener('click', e => {
+        e.stopPropagation();
         toggleMenu(sortMenu, false);
-        toggleMenu(filterMenu, !isVisible);
+        toggleMenu(filterMenu, filterMenu.style.display !== 'block');
     });
 
     document.addEventListener('click', () => {
@@ -199,56 +189,58 @@
         toggleMenu(filterMenu, false);
     });
 
-    sortMenu.addEventListener('click', (event) => event.stopPropagation());
-    filterMenu.addEventListener('click', (event) => event.stopPropagation());
+    sortMenu.addEventListener('click', e => e.stopPropagation());
+    filterMenu.addEventListener('click', e => e.stopPropagation());
 
     function applySort(type) {
         let sortedRows = [...orderRows];
 
-        if (type === 'asc') {
+        if (type === 'asc')
             sortedRows.sort((a, b) => Number(a.dataset.orderNr) - Number(b.dataset.orderNr));
-        } else if (type === 'desc') {
+        else if (type === 'desc')
             sortedRows.sort((a, b) => Number(b.dataset.orderNr) - Number(a.dataset.orderNr));
-        } else if (type === 'alpha') {
+        else if (type === 'alpha')
             sortedRows.sort((a, b) => a.dataset.factuurNr.localeCompare(b.dataset.factuurNr));
-        } else if (type === 'alpha-desc') {
+        else if (type === 'alpha-desc')
             sortedRows.sort((a, b) => b.dataset.factuurNr.localeCompare(a.dataset.factuurNr));
-        } else {
+        else
             sortedRows = [...defaultOrder];
-        }
 
         sortedRows.forEach(row => tableBody.appendChild(row));
     }
 
-    document.querySelectorAll('#sortMenu .dropdown-option').forEach(option => {
+    document.querySelectorAll('#sortMenu .dropdown-option').forEach(option =>
         option.addEventListener('click', () => {
-            const sortType = option.dataset.sort;
-            applySort(sortType);
+            applySort(option.dataset.sort);
             toggleMenu(sortMenu, false);
-        });
-    });
+        })
+    );
 
     function applyFilter() {
         const filters = {
+            orderLine: document.getElementById('filterOrderLineNr').value.trim().toLowerCase(),
             order: document.getElementById('filterOrderNr').value.trim().toLowerCase(),
             factuur: document.getElementById('filterFactuurNr').value.trim().toLowerCase(),
             client: document.getElementById('filterClientId').value.trim().toLowerCase(),
             supplier: document.getElementById('filterSupplierId').value.trim().toLowerCase(),
             product: document.getElementById('filterProductNr').value.trim().toLowerCase(),
             quantity: document.getElementById('filterQuantity').value.trim().toLowerCase(),
-            sellPrice: document.getElementById('filterSellPrice').value.trim().toLowerCase(),
+            unitPrice: document.getElementById('filterUnitPrice').value.trim().toLowerCase(),
+            currency: document.getElementById('filterCurrency').value.trim().toLowerCase(),
             date: document.getElementById('filterDate').value.trim().toLowerCase()
         };
 
         orderRows.forEach(row => {
             const matches =
+                (!filters.orderLine || row.dataset.orderLineNr.toLowerCase().includes(filters.orderLine)) &&
                 (!filters.order || row.dataset.orderNr.toLowerCase().includes(filters.order)) &&
                 (!filters.factuur || row.dataset.factuurNr.toLowerCase().includes(filters.factuur)) &&
                 (!filters.client || row.dataset.clientId.toLowerCase().includes(filters.client)) &&
                 (!filters.supplier || row.dataset.supplierId.toLowerCase().includes(filters.supplier)) &&
                 (!filters.product || row.dataset.productNr.toLowerCase().includes(filters.product)) &&
                 (!filters.quantity || row.dataset.quantity.toLowerCase().includes(filters.quantity)) &&
-                (!filters.sellPrice || row.dataset.sellPrice.toLowerCase().includes(filters.sellPrice)) &&
+                (!filters.unitPrice || row.dataset.unitPrice.toLowerCase().includes(filters.unitPrice)) &&
+                (!filters.currency || row.dataset.currency.toLowerCase().includes(filters.currency)) &&
                 (!filters.date || row.dataset.date.toLowerCase().includes(filters.date));
 
             row.style.display = matches ? '' : 'none';
@@ -261,8 +253,11 @@
     });
 
     filterClear.addEventListener('click', () => {
-        document.querySelectorAll('#filterMenu input').forEach(input => input.value = '');
+        document.querySelectorAll('#filterMenu input').forEach(i => i.value = '');
         applyFilter();
     });
 </script>
+
 </html>
+
+

@@ -1,145 +1,202 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for
 from sqlalchemy import func
-
-from .models import WEBUSER, CLIENT, SUPPLIER, PRODUCT, ORDER, COST
 from . import db
 
-main = Blueprint('main', __name__)
+from .models import (
+    WEBUSER,
+    CLIENT,
+    SUPPLIER,
+    PRODUCT,
+    ORDER,
+    ORDER_LINE,
+    BRAND,
+    PRODUCT_COST
+)
 
-# 🏠 Loginpagina
-@main.route('/')
+main = Blueprint("main", __name__)
+
+
+# -------------------------
+# LOGIN + REGISTER
+# -------------------------
+@main.route("/")
 def home():
-    return render_template('login.html')
+    return render_template("login.html")
 
-# 🔑 Login / Signup functionaliteit
-@main.route('/login', methods=['POST'])
+
+@main.route("/login", methods=["GET", "POST"])
 def login():
-    name = request.form.get('name')
-    action = request.form.get('action')  # "login" of "signup"
+    if request.method == "GET":
+        return render_template("login.html")
+
+    name = request.form.get("name")
+    action = request.form.get("action")
 
     if not name:
-        return jsonify({"status": "error", "message": "Vul een naam in."})
+        return render_template("login.html", message="Vul een naam in.")
 
     user = WEBUSER.query.filter_by(Name=name).first()
 
     if action == "signup":
         if user:
-            return jsonify({"status": "error", "message": "Account bestaat al. Log in."})
-        # Redirect naar registratiepagina
-        return jsonify({"status": "redirect", "url": "/register"})
+            return render_template("login.html", message="Account bestaat al.")
+        return redirect(url_for("main.register"))
 
-    elif action == "login":
+    if action == "login":
         if not user:
-            return jsonify({"status": "error", "message": "Account niet gevonden. Gelieve eerst aan te melden."})
-        return jsonify({"status": "success", "message": f"Ingelogd als {name}"})
+            return render_template("login.html", message="Gebruiker niet gevonden.")
+        return redirect(url_for("main.home_page"))
 
-    return jsonify({"status": "error", "message": "Ongeldige actie."})
+    return render_template("login.html", message="Ongeldige actie.")
 
-# 📝 Registratiepagina
-@main.route('/register', methods=['GET', 'POST'])
+
+@main.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        supplier_id = request.form.get('supplier_id')
+    if request.method == "POST":
+        username = request.form.get("username")
+        email = request.form.get("email")
+        supplier_id = request.form.get("supplier_id")
 
         if not username or not email or not supplier_id:
-            return render_template('register.html', message="Vul alle velden in.")
+            return render_template("register.html", message="Vul alles in.")
 
-        existing_user = WEBUSER.query.filter_by(Name=username).first()
-        if existing_user:
-            return render_template('register.html', message="Gebruiker bestaat al. Log in.")
+        existing = WEBUSER.query.filter_by(Name=username).first()
+        if existing:
+            return render_template("register.html", message="Gebruiker bestaat al.")
 
-        new_user = WEBUSER(Name=username, Email=email, SUPPLIER_ID=int(supplier_id))
+        new_user = WEBUSER(Name=username, Email=email, SUPPLIER_ID=supplier_id)
         db.session.add(new_user)
         db.session.commit()
 
-        return redirect(url_for('main.home'))
+        return redirect(url_for("main.home"))
 
-    # GET
     suppliers = SUPPLIER.query.all()
-    return render_template('register.html', suppliers=suppliers)
+    return render_template("register.html", suppliers=suppliers)
 
-# 🏡 Homepagina
-@main.route('/home')
+
+@main.route("/home")
 def home_page():
-    return render_template('home.html')
+    return render_template("home.html")
 
 
-# 👥 Client-overzichtspagina
-@main.route('/clients')
+# -------------------------
+# CLIENTS LIST
+# -------------------------
+@main.route("/clients")
 def clients():
+
     clients = CLIENT.query.all()
-    
+
+    # maak revenue data structuur
     client_totals = {
-        client.CLIENT_ID: {
+        c.CLIENT_ID: {
             "total_revenue": 0,
             "total_production_cost": 0,
             "total_transport_cost": 0,
             "total_storage_cost": 0,
         }
-        for client in clients
+        for c in clients
     }
 
-    aggregate_rows = (
+    # omzet en productie kosten
+    revenue_rows = (
         db.session.query(
-            CLIENT.CLIENT_ID,
-            func.coalesce(func.sum(ORDER.total_sell_price), 0).label("total_revenue"),
-            func.coalesce(func.sum(ORDER.quantity * PRODUCT.Unit_cost), 0).label("total_production_cost"),
-            func.coalesce(func.sum(COST.Total_transport_cost), 0).label("total_transport_cost"),
-            func.coalesce(func.sum(COST.Total_stockage_cost), 0).label("total_storage_cost"),
+            ORDER.CLIENT_ID,
+            func.sum(ORDER_LINE.Quantity * ORDER_LINE.Paid_price).label("total_revenue"),
+            func.sum(ORDER_LINE.Quantity * PRODUCT.Sell_price_per_product).label("total_production_cost")
         )
-        .outerjoin(ORDER, CLIENT.CLIENT_ID == ORDER.CLIENT_ID)
-        .outerjoin(PRODUCT, ORDER.PRODUCT_NR == PRODUCT.PRODUCT_NR)
-        .outerjoin(COST, ORDER.FACTUUR_NR == COST.FACTUUR_NR)
-        .group_by(CLIENT.CLIENT_ID)
+        .join(ORDER_LINE, ORDER.ORDER_NR == ORDER_LINE.ORDER_NR)
+        .join(PRODUCT, PRODUCT.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
+        .group_by(ORDER.CLIENT_ID)
         .all()
     )
 
-    for row in aggregate_rows:
-        client_totals[row.CLIENT_ID] = {
-            "total_revenue": row.total_revenue,
-            "total_production_cost": row.total_production_cost,
-            "total_transport_cost": row.total_transport_cost,
-            "total_storage_cost": row.total_storage_cost,
-        }
+    for row in revenue_rows:
+        client_totals[row.CLIENT_ID]["total_revenue"] = float(row.total_revenue or 0)
+        client_totals[row.CLIENT_ID]["total_production_cost"] = float(row.total_production_cost or 0)
 
-    countries = sorted({client.Country for client in clients if client.Country})
+    countries = sorted({c.Country for c in clients if c.Country})
 
     return render_template(
-        'clients.html',
+        "clients.html",
         clients=clients,
         client_totals=client_totals,
         countries=countries,
     )
 
-# 👥 Webusers-overzichtspagina
-@main.route('/webusers')
-def webusers():
-    webusers_list = WEBUSER.query.all()
-    return render_template('webusers.html', webusers=webusers_list)
+
+# -------------------------
+# DELETE CLIENT
+# -------------------------
+@main.route("/clients/delete/<int:id>")
+def delete_client(id):
+    client = CLIENT.query.get(id)
+    if client:
+        db.session.delete(client)
+        db.session.commit()
+
+    return redirect(url_for("main.clients"))
 
 
-# 👥 Suppliers-overzichtspagina
-@main.route('/suppliers')
+# -------------------------
+# SUPPLIERS
+# -------------------------
+@main.route("/suppliers")
 def suppliers():
-    suppliers = SUPPLIER.query.all()
-    return render_template('suppliers.html', suppliers=suppliers)
+    return render_template("suppliers.html", suppliers=SUPPLIER.query.all())
 
-# 📦 Products-overzichtspagina
-@main.route('/products')
+
+# -------------------------
+# WEBUSERS
+# -------------------------
+@main.route("/webusers")
+def webusers():
+    return render_template("webusers.html", webusers=WEBUSER.query.all())
+
+
+# -------------------------
+# PRODUCTS
+# -------------------------
+@main.route("/products")
 def products():
-    products = PRODUCT.query.all()
-    return render_template('products.html', products=products)
 
-# 🛒 Orders-overzichtspagina
-@main.route('/orders')
+    rows = (
+        db.session.query(PRODUCT, BRAND)
+        .outerjoin(BRAND, PRODUCT.BRAND_ID == BRAND.BRAND_ID)
+        .all()
+    )
+
+    return render_template("products.html", products=rows)
+
+
+# -------------------------
+# ORDERS
+# -------------------------
+@main.route("/orders")
 def orders():
-    orders = ORDER.query.all()
-    return render_template('orders.html', orders=orders)
+    rows = (
+        db.session.query(
+            ORDER_LINE.ORDER_LINE_NR,
+            ORDER_LINE.ORDER_NR,
+            ORDER.CLIENT_ID,
+            ORDER.SUPPLIER_ID,
+            ORDER_LINE.PRODUCT_ID,
+            ORDER_LINE.Quantity,
+            ORDER_LINE.Paid_price,
+            ORDER_LINE.Currency,
+            ORDER.Order_date,
+        )
+        .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
+        .all()
+    )
 
-# 💰 Costs-overzichtspagina
-@main.route('/costs')
+    return render_template("orders.html", order_rows=rows)
+
+
+# -------------------------
+# COSTS PAGE
+# -------------------------
+@main.route("/costs")
 def costs():
-    costs = COST.query.all()
-    return render_template('costs.html', costs=costs)
+    return render_template("costs.html")
+
