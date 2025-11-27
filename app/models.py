@@ -12,6 +12,9 @@ class WEBUSER(db.Model):
 
     supplier = db.relationship("SUPPLIER", backref="webusers")
 
+    def __repr__(self):
+        return f"<WEBUSER {self.WEBUSER_id} - {self.Name}>"
+
 
 # ---------------- CLIENT ----------------
 class CLIENT(db.Model):
@@ -25,13 +28,13 @@ class CLIENT(db.Model):
     Street = db.Column(db.String)
     House_number = db.Column(db.String)
 
-    # BELANGRIJK: kolom heet BTW/VAT in Supabase
     BTW_VAT = db.Column("BTW/VAT", db.String)
-
     Email = db.Column(db.String)
 
     orders = db.relationship("ORDER", backref="client")
 
+    def __repr__(self):
+        return f"<CLIENT {self.CLIENT_ID} - {self.Name}>"
 
 
 # ---------------- SUPPLIER ----------------
@@ -46,7 +49,6 @@ class SUPPLIER(db.Model):
     Street = db.Column(db.String)
     House_number = db.Column(db.String)
 
-    # BELANGRIJK: echte kolomnaam is "BTW/VAT"
     BTW_VAT = db.Column("BTW/VAT", db.String)
 
     Email = db.Column(db.String)
@@ -56,6 +58,8 @@ class SUPPLIER(db.Model):
     products = db.relationship("PRODUCT", backref="supplier")
     orders = db.relationship("ORDER", backref="supplier")
 
+    def __repr__(self):
+        return f"<SUPPLIER {self.SUPPLIER_ID} - {self.Name}>"
 
 
 # ---------------- BRAND ----------------
@@ -68,6 +72,9 @@ class BRAND(db.Model):
     SUPPLIER_ID = db.Column(db.Integer, db.ForeignKey('SUPPLIER.SUPPLIER_ID'))
 
     products = db.relationship("PRODUCT", backref="brand")
+
+    def __repr__(self):
+        return f"<BRAND {self.BRAND_ID} - {self.Name}>"
 
 
 # ---------------- PRODUCT ----------------
@@ -84,6 +91,9 @@ class PRODUCT(db.Model):
     order_lines = db.relationship("ORDER_LINE", backref="product")
     costs = db.relationship("PRODUCT_COST", backref="product")
 
+    def __repr__(self):
+        return f"<PRODUCT {self.PRODUCT_ID} - {self.Name}>"
+
 
 # ---------------- PRODUCT_COST ----------------
 class PRODUCT_COST(db.Model):
@@ -99,6 +109,9 @@ class PRODUCT_COST(db.Model):
     Storage_cost = db.Column(db.Float)
     Warehousing_picking_cost = db.Column(db.Float)
 
+    def __repr__(self):
+        return f"<PRODUCT_COST {self.PRODUCT_COST_ID} product={self.PRODUCT_ID}>"
+
 
 # ---------------- ORDER ----------------
 class ORDER(db.Model):
@@ -112,6 +125,9 @@ class ORDER(db.Model):
 
     order_lines = db.relationship("ORDER_LINE", backref="order")
 
+    def __repr__(self):
+        return f"<ORDER {self.ORDER_NR} - client={self.CLIENT_ID}>"
+
 
 # ---------------- ORDER_LINE ----------------
 class ORDER_LINE(db.Model):
@@ -123,5 +139,8 @@ class ORDER_LINE(db.Model):
     PRODUCT_ID = db.Column(db.Integer, db.ForeignKey('PRODUCT.PRODUCT_ID'))
     ORDER_NR = db.Column(db.String, db.ForeignKey('ORDER.ORDER_NR'))
     Currency = db.Column(db.String)
+
+    def __repr__(self):
+        return f"<ORDER_LINE {self.ORDER_LINE_NR} order={self.ORDER_NR} product={self.PRODUCT_ID}>"
 
 
