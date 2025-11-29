@@ -24,14 +24,38 @@
                     <tr>
                         <th>WEBUSER_ID</th>
                         <th>Name</th>
+                        <th>Supplier</th>
+                        <th>Email</th>
                     </tr>
                 </thead>
 
                 <tbody>
                 {% for user in webusers %}
                     <tr>
-                        <td>{{ user.WEBUSER_ID }}</td>
+                        <td>{{ user.WEBUSER_id }}</td>
                         <td>{{ user.Name }}</td>
+
+                        <!-- Supplier tonen (kan None zijn als nog niet ingevuld) -->
+                        <td>
+                            {% if user.supplier %}
+                                {{ user.supplier.Name }}
+                            {% else %}
+                                <i>Geen supplier gekoppeld</i>
+                            {% endif %}
+                        </td>
+
+                        <td>{{ user.Email }}</td>
                     </tr>
                 {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+
+    </div>
+
+</body>
+</html>
+
 
