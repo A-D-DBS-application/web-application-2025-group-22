@@ -64,7 +64,6 @@ def register():
         if existing:
             return render_template("register.html", message="Gebruiker bestaat al.", suppliers=SUPPLIER.query.all())
 
-        # FIXED: correct attribuut is SUPPLIER_id
         new_user = WEBUSER(Name=username, Email=email, SUPPLIER_id=supplier_id)
         db.session.add(new_user)
         db.session.commit()
@@ -88,6 +87,7 @@ def clients():
 
     clients = CLIENT.query.all()
 
+    # basis datastructuur voor elke client
     client_totals = {
         c.CLIENT_ID: {
             "total_revenue": 0,
@@ -98,22 +98,42 @@ def clients():
         for c in clients
     }
 
+    # -------------------------
+    # ✔ OMZET (Paid_price ALLEEN, geen quantity)
+    # -------------------------
     revenue_rows = (
         db.session.query(
             ORDER.CLIENT_ID,
-            func.sum(ORDER_LINE.Quantity * ORDER_LINE.Paid_price).label("total_revenue"),
-            func.sum(ORDER_LINE.Quantity * PRODUCT.Sell_price_per_product).label("total_production_cost")
+            func.sum(ORDER_LINE.Paid_price).label("total_revenue")
         )
         .join(ORDER_LINE, ORDER.ORDER_NR == ORDER_LINE.ORDER_NR)
-        .join(PRODUCT, PRODUCT.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
         .group_by(ORDER.CLIENT_ID)
         .all()
     )
 
     for row in revenue_rows:
         client_totals[row.CLIENT_ID]["total_revenue"] = float(row.total_revenue or 0)
+
+    # -------------------------
+    # ✔ PRODUCTION COST
+    # = Quantity × Production_cost per product
+    # -------------------------
+    production_rows = (
+        db.session.query(
+            ORDER.CLIENT_ID,
+            func.sum(ORDER_LINE.Quantity * PRODUCT_COST.Production_cost).label("total_production_cost"),
+        )
+        .join(ORDER_LINE, ORDER.ORDER_NR == ORDER_LINE.ORDER_NR)
+        .join(PRODUCT, PRODUCT.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
+        .join(PRODUCT_COST, PRODUCT_COST.PRODUCT_ID == PRODUCT.PRODUCT_ID)
+        .group_by(ORDER.CLIENT_ID)
+        .all()
+    )
+
+    for row in production_rows:
         client_totals[row.CLIENT_ID]["total_production_cost"] = float(row.total_production_cost or 0)
 
+    # LANDEN DYNAMISCH LADEN
     countries = sorted({c.Country for c in clients if c.Country})
 
     return render_template(
@@ -198,5 +218,7 @@ def orders():
 @main.route("/costs")
 def costs():
     return render_template("costs.html")
+
+
 
 
