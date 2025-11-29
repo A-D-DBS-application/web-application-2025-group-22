@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Producten Lijst</title>
 
-    <!-- Zelfde stijl als Clients / Orders / Webusers -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
 </head>
 
@@ -14,17 +13,8 @@
 
         <!-- HEADER MET LOGO EN TITEL -->
         <div class="page-header">
-
             <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
-
-            <div class="page-title">
-                <h1>Producten</h1>
-            </div>
-
-            <div class="action-group">
-                <!-- Leeg, maar blijft staan voor uniformiteit -->
-            </div>
-
+            <div class="page-title"><h1>Producten</h1></div>
         </div>
 
         <!-- PRODUCT TABEL -->
@@ -32,7 +22,7 @@
             <table class="products-table">
                 <thead>
                     <tr>
-                        <th>PRODUCT_NR</th>
+                        <th>PRODUCT_ID</th>
                         <th>Naam</th>
                         <th>Unit Volume</th>
                         <th>Unit Cost</th>
@@ -43,14 +33,31 @@
                 </thead>
 
                 <tbody>
-                    {% for product, brand in products %}
+                    {% for product, brand, cost in products %}
                     <tr>
-                        <td>{{ product.PRODUCT_NR }}</td>
+                        <!-- PRODUCT ID -->
+                        <td>{{ product.PRODUCT_ID }}</td>
+
+                        <!-- PRODUCT INFO -->
                         <td>{{ product.Name }}</td>
-                        <td>{{ product.Unit_volume }}</td>
-                        <td>{{ product.Unit_cost }}</td>
+                        <td>{{ product.Unit_volume or '-' }}</td>
+
+                        <!-- UNIT COST (uit PRODUCT_COST) -->
+                        <td>
+                            {% if cost %}
+                                {{ cost.Production_cost }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <!-- SELL PRICE -->
                         <td>{{ product.Sell_price_per_product }}</td>
+
+                        <!-- BRAND -->
                         <td>{{ brand.Name if brand else '-' }}</td>
+
+                        <!-- SUPPLIER -->
                         <td>{{ product.SUPPLIER_ID }}</td>
                     </tr>
                     {% endfor %}
@@ -64,5 +71,6 @@
 
 </body>
 </html>
+
 
 
