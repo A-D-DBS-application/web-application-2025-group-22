@@ -4,118 +4,33 @@
     <meta charset="UTF-8">
     <title>Orders Lijst</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
-    <style>
-        .orders-layout { width: min(1500px, 98vw); }
-        .orders-layout .table-wrapper { padding: 32px; }
-        .orders-layout .logo { width: 80px; margin: 0 0 18px 0; }
-
-        .orders-table { width: 100%; border-collapse: collapse; }
-        .orders-table th, .orders-table td {
-            border: 1px solid #d0d9e6;
-            padding: 16px 18px;
-        }
-        .orders-table th { font-size: 130%; padding: 21px 24px; }
-        .orders-table tbody tr:nth-child(odd) { background-color: #fff; }
-        .orders-table tbody tr:nth-child(even) { background-color: #f5faff; }
-
-        .orders-layout .page-header {
-            display: flex; justify-content: space-between;
-            align-items: center; gap: 16px; flex-wrap: nowrap;
-        }
-        .orders-layout .action-group {
-            display: flex; gap: 12px; margin-left: auto;
-        }
-    </style>
 </head>
 
 <body>
-    <div class="clients-container orders-layout">
-        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+
+    <div class="clients-container">
 
         <div class="page-header">
-            <div class="page-title"><h1>Orders Lijst</h1></div>
+            <img src="{{ url_for('static', filename='logo.svg') }}" class="logo">
+            <h1>Orders Lijst</h1>
 
             <div class="action-group">
-                <div class="dropdown">
-                    <button class="action-button" id="sortButton">Sorteer</button>
-                    <div class="dropdown-menu" id="sortMenu">
-                        <button class="dropdown-option" data-sort="asc">Klein naar groot</button>
-                        <button class="dropdown-option" data-sort="desc">Groot naar klein</button>
-                        <button class="dropdown-option" data-sort="alpha">Alfabetisch</button>
-                        <button class="dropdown-option" data-sort="alpha-desc">Omgekeerd alfabetisch</button>
-                        <button class="dropdown-option" data-sort="other">Andere</button>
-                    </div>
-                </div>
-
-                <div class="dropdown">
-                    <button class="action-button" id="filterButton">Filter</button>
-                    <div class="dropdown-menu filter-menu" id="filterMenu">
-                        <p class="filter-title">Filter op kolom</p>
-                        <div class="filter-options">
-
-                            <label>ORDER_LINE_NR
-                                <input type="text" id="filterOrderLineNr" placeholder="Bijv. 10">
-                            </label>
-
-                            <label>ORDER_NR
-                                <input type="text" id="filterOrderNr" placeholder="Bijv. 1001">
-                            </label>
-
-                            <label>FACTUUR_NR
-                                <input type="text" id="filterFactuurNr" placeholder="Bijv. F-200">
-                            </label>
-
-                            <label>CLIENT_ID
-                                <input type="text" id="filterClientId" placeholder="Bijv. C-15">
-                            </label>
-
-                            <label>SUPPLIER_ID
-                                <input type="text" id="filterSupplierId" placeholder="Bijv. S-8">
-                            </label>
-
-                            <label>PRODUCT_NR
-                                <input type="text" id="filterProductNr" placeholder="Bijv. P-120">
-                            </label>
-
-                            <label>Quantity
-                                <input type="text" id="filterQuantity" placeholder="Bijv. 25">
-                            </label>
-
-                            <label>Unit Price
-                                <input type="text" id="filterUnitPrice" placeholder="Bijv. 199.99">
-                            </label>
-
-                            <label>Currency
-                                <input type="text" id="filterCurrency" placeholder="Bijv. EUR">
-                            </label>
-
-                            <label>Order Date
-                                <input type="text" id="filterDate" placeholder="YYYY-MM-DD">
-                            </label>
-
-                        </div>
-
-                        <div class="filter-actions">
-                            <button type="button" id="filterApply">Apply</button>
-                            <button type="button" id="filterClear">Clear</button>
-                        </div>
-                    </div>
-                </div>
+                <button id="sortButton" class="action-button">Sorteer</button>
+                <button id="filterButton" class="action-button">Filter</button>
             </div>
         </div>
 
-        <div class="table-wrapper">
-            <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+        <button class="back-button" onclick="window.location.href='/home'">Terug</button>
 
-            <table class="orders-table">
+        <div class="table-wrapper">
+            <table id="ordersTable" class="webusers-table">
                 <thead>
                     <tr>
                         <th>ORDER_LINE_NR</th>
                         <th>ORDER_NR</th>
-                        <th>FACTUUR_NR</th>
                         <th>CLIENT_ID</th>
                         <th>SUPPLIER_ID</th>
-                        <th>PRODUCT_NR</th>
+                        <th>PRODUCT_ID</th>
                         <th>Quantity</th>
                         <th>Unit Price</th>
                         <th>Currency</th>
@@ -125,24 +40,16 @@
 
                 <tbody>
                     {% for o in order_rows %}
-                    <tr class="order-row"
-                        data-order-line-nr="{{ o.ORDER_LINE_NR or '' }}"
-                        data-order-nr="{{ o.ORDER_NR }}"
-                        data-factuur-nr="{{ o.FACTUUR_NR }}"
-                        data-client-id="{{ o.CLIENT_ID }}"
-                        data-supplier-id="{{ o.SUPPLIER_ID }}"
-                        data-product-nr="{{ o.PRODUCT_NR }}"
-                        data-quantity="{{ o.Quantity }}"
+                    <tr 
+                        class="order-row"
+                        data-product="{{ o.PRODUCT_ID }}"
                         data-unit-price="{{ o.Unit_price }}"
-                        data-currency="{{ o.Currency }}"
-                        data-date="{{ o.Order_date }}"
                     >
                         <td>{{ o.ORDER_LINE_NR }}</td>
                         <td>{{ o.ORDER_NR }}</td>
-                        <td>{{ o.FACTUUR_NR }}</td>
                         <td>{{ o.CLIENT_ID }}</td>
                         <td>{{ o.SUPPLIER_ID }}</td>
-                        <td>{{ o.PRODUCT_NR }}</td>
+                        <td>{{ o.PRODUCT_ID }}</td>
                         <td>{{ o.Quantity }}</td>
                         <td>{{ o.Unit_price }}</td>
                         <td>{{ o.Currency }}</td>
@@ -150,114 +57,12 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-
             </table>
         </div>
+
     </div>
 
 </body>
-
-<script>
-    const sortButton = document.getElementById('sortButton');
-    const sortMenu = document.getElementById('sortMenu');
-    const filterButton = document.getElementById('filterButton');
-    const filterMenu = document.getElementById('filterMenu');
-    const filterApply = document.getElementById('filterApply');
-    const filterClear = document.getElementById('filterClear');
-    const tableBody = document.querySelector('.orders-table tbody');
-    const orderRows = Array.from(document.querySelectorAll('.order-row'));
-    const defaultOrder = [...orderRows];
-
-    function toggleMenu(menu, show) {
-        menu.style.display = show ? 'block' : 'none';
-    }
-
-    sortButton.addEventListener('click', e => {
-        e.stopPropagation();
-        toggleMenu(filterMenu, false);
-        toggleMenu(sortMenu, sortMenu.style.display !== 'block');
-    });
-
-    filterButton.addEventListener('click', e => {
-        e.stopPropagation();
-        toggleMenu(sortMenu, false);
-        toggleMenu(filterMenu, filterMenu.style.display !== 'block');
-    });
-
-    document.addEventListener('click', () => {
-        toggleMenu(sortMenu, false);
-        toggleMenu(filterMenu, false);
-    });
-
-    sortMenu.addEventListener('click', e => e.stopPropagation());
-    filterMenu.addEventListener('click', e => e.stopPropagation());
-
-    function applySort(type) {
-        let sortedRows = [...orderRows];
-
-        if (type === 'asc')
-            sortedRows.sort((a, b) => Number(a.dataset.orderNr) - Number(b.dataset.orderNr));
-        else if (type === 'desc')
-            sortedRows.sort((a, b) => Number(b.dataset.orderNr) - Number(a.dataset.orderNr));
-        else if (type === 'alpha')
-            sortedRows.sort((a, b) => a.dataset.factuurNr.localeCompare(b.dataset.factuurNr));
-        else if (type === 'alpha-desc')
-            sortedRows.sort((a, b) => b.dataset.factuurNr.localeCompare(a.dataset.factuurNr));
-        else
-            sortedRows = [...defaultOrder];
-
-        sortedRows.forEach(row => tableBody.appendChild(row));
-    }
-
-    document.querySelectorAll('#sortMenu .dropdown-option').forEach(option =>
-        option.addEventListener('click', () => {
-            applySort(option.dataset.sort);
-            toggleMenu(sortMenu, false);
-        })
-    );
-
-    function applyFilter() {
-        const filters = {
-            orderLine: document.getElementById('filterOrderLineNr').value.trim().toLowerCase(),
-            order: document.getElementById('filterOrderNr').value.trim().toLowerCase(),
-            factuur: document.getElementById('filterFactuurNr').value.trim().toLowerCase(),
-            client: document.getElementById('filterClientId').value.trim().toLowerCase(),
-            supplier: document.getElementById('filterSupplierId').value.trim().toLowerCase(),
-            product: document.getElementById('filterProductNr').value.trim().toLowerCase(),
-            quantity: document.getElementById('filterQuantity').value.trim().toLowerCase(),
-            unitPrice: document.getElementById('filterUnitPrice').value.trim().toLowerCase(),
-            currency: document.getElementById('filterCurrency').value.trim().toLowerCase(),
-            date: document.getElementById('filterDate').value.trim().toLowerCase()
-        };
-
-        orderRows.forEach(row => {
-            const matches =
-                (!filters.orderLine || row.dataset.orderLineNr.toLowerCase().includes(filters.orderLine)) &&
-                (!filters.order || row.dataset.orderNr.toLowerCase().includes(filters.order)) &&
-                (!filters.factuur || row.dataset.factuurNr.toLowerCase().includes(filters.factuur)) &&
-                (!filters.client || row.dataset.clientId.toLowerCase().includes(filters.client)) &&
-                (!filters.supplier || row.dataset.supplierId.toLowerCase().includes(filters.supplier)) &&
-                (!filters.product || row.dataset.productNr.toLowerCase().includes(filters.product)) &&
-                (!filters.quantity || row.dataset.quantity.toLowerCase().includes(filters.quantity)) &&
-                (!filters.unitPrice || row.dataset.unitPrice.toLowerCase().includes(filters.unitPrice)) &&
-                (!filters.currency || row.dataset.currency.toLowerCase().includes(filters.currency)) &&
-                (!filters.date || row.dataset.date.toLowerCase().includes(filters.date));
-
-            row.style.display = matches ? '' : 'none';
-        });
-    }
-
-    filterApply.addEventListener('click', () => {
-        applyFilter();
-        toggleMenu(filterMenu, false);
-    });
-
-    filterClear.addEventListener('click', () => {
-        document.querySelectorAll('#filterMenu input').forEach(i => i.value = '');
-        applyFilter();
-    });
-</script>
-
 </html>
 
 

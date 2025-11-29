@@ -97,7 +97,7 @@ def clients():
         for c in clients
     }
 
-    # ✔ Total Revenue (som van totaal betaalde prijs)
+    # Total revenue (Paid_price is al totale lijnprijs)
     revenue_rows = (
         db.session.query(
             ORDER.CLIENT_ID,
@@ -107,11 +107,10 @@ def clients():
         .group_by(ORDER.CLIENT_ID)
         .all()
     )
-
     for row in revenue_rows:
         client_totals[row.CLIENT_ID]["total_revenue"] = float(row.total_revenue or 0)
 
-    # ✔ Production Cost (Quantity × Production_cost)
+    # Production cost (Quantity × Production_cost)
     production_rows = (
         db.session.query(
             ORDER.CLIENT_ID,
@@ -123,7 +122,6 @@ def clients():
         .group_by(ORDER.CLIENT_ID)
         .all()
     )
-
     for row in production_rows:
         client_totals[row.CLIENT_ID]["total_production_cost"] = float(row.total_production_cost or 0)
 
@@ -167,7 +165,7 @@ def webusers():
 
 
 # -------------------------
-# PRODUCTS (UPDATED VOOR UNIT COST)
+# PRODUCTS
 # -------------------------
 @main.route("/products")
 def products():
@@ -183,7 +181,7 @@ def products():
 
 
 # -------------------------
-# ORDERS
+# ORDERS (NEW + FIXED)
 # -------------------------
 @main.route("/orders")
 def orders():
@@ -193,13 +191,14 @@ def orders():
             ORDER_LINE.ORDER_NR,
             ORDER.CLIENT_ID,
             ORDER.SUPPLIER_ID,
-            ORDER_LINE.PRODUCT_ID,
+            ORDER_LINE.PRODUCT_ID.label("PRODUCT_ID"),
             ORDER_LINE.Quantity,
-            ORDER_LINE.Paid_price,
+            PRODUCT.Sell_price_per_product.label("Unit_price"),
             ORDER_LINE.Currency,
-            ORDER.Order_date,
+            ORDER.Order_date
         )
         .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
+        .join(PRODUCT, PRODUCT.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
         .all()
     )
 
@@ -212,6 +211,7 @@ def orders():
 @main.route("/costs")
 def costs():
     return render_template("costs.html")
+
 
 
 
