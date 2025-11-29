@@ -22,24 +22,25 @@
             border: none;
             cursor: pointer;
         }
-
         .compact-button:hover {
             background-color: #8c4e28;
         }
 
-        .filter-popup {
+        /* Popup Panels (Filter + Sort) */
+        .popup-panel {
             position: absolute;
-            right: 50px;
-            top: 160px;
+            right: 40px;
+            top: 150px;
             width: 260px;
             padding: 15px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.15);
             display: none;
+            z-index: 100;
         }
 
-        .filter-popup input, .filter-popup select {
+        .popup-panel input, .popup-panel select {
             width: 100%;
             margin-bottom: 10px;
             padding: 6px;
@@ -47,7 +48,7 @@
             border: 1px solid #ccc;
         }
 
-        .filter-popup button {
+        .popup-panel button {
             width: 48%;
             padding: 7px;
             border-radius: 8px;
@@ -62,8 +63,19 @@
 
     <script>
         function toggleFilter() {
-            const panel = document.getElementById("filter-panel");
-            panel.style.display = (panel.style.display === "block") ? "none" : "block";
+            const filter = document.getElementById("filter-panel");
+            const sort = document.getElementById("sort-panel");
+
+            sort.style.display = "none";  
+            filter.style.display = filter.style.display === "block" ? "none" : "block";
+        }
+
+        function toggleSort() {
+            const filter = document.getElementById("filter-panel");
+            const sort = document.getElementById("sort-panel");
+
+            filter.style.display = "none";
+            sort.style.display = sort.style.display === "block" ? "none" : "block";
         }
     </script>
 </head>
@@ -72,9 +84,9 @@
 
 <div class="clients-container">
 
+    <!-- HEADER -->
     <div class="page-header">
         <img src="{{ url_for('static', filename='logo.svg') }}" class="logo">
-
         <h1>Clients Lijst</h1>
 
         <div class="top-buttons">
@@ -84,9 +96,9 @@
     </div>
 
     <!-- FILTER PANEL -->
-    <div id="filter-panel" class="filter-popup">
-
+    <div id="filter-panel" class="popup-panel">
         <form method="get">
+
             <label>Naam:</label>
             <input type="text" name="name" value="{{ request_args.get('name','') }}">
 
@@ -107,13 +119,29 @@
             <label>Max Revenue:</label>
             <input type="number" name="max_rev" value="{{ request_args.get('max_rev','') }}">
 
+            <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                <button type="submit" class="apply-btn">Apply</button>
+                <a href="/clients" class="reset-btn">Clear</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- SORT PANEL -->
+    <div id="sort-panel" class="popup-panel">
+        <form method="get">
+
+            <input type="hidden" name="name" value="{{ request_args.get('name','') }}">
+            <input type="hidden" name="country" value="{{ request_args.get('country','') }}">
+            <input type="hidden" name="min_rev" value="{{ request_args.get('min_rev','') }}">
+            <input type="hidden" name="max_rev" value="{{ request_args.get('max_rev','') }}">
+
             <label>Sorteer op:</label>
             <select name="sort">
                 <option value="default">Standaard</option>
-                <option value="name-asc"  {% if request_args.get('sort') == 'name-asc' %}selected{% endif %}>Naam A → Z</option>
+                <option value="name-asc" {% if request_args.get('sort') == 'name-asc' %}selected{% endif %}>Naam A → Z</option>
                 <option value="name-desc" {% if request_args.get('sort') == 'name-desc' %}selected{% endif %}>Naam Z → A</option>
-                <option value="rev-asc"   {% if request_args.get('sort') == 'rev-asc' %}selected{% endif %}>Revenue klein → groot</option>
-                <option value="rev-desc"  {% if request_args.get('sort') == 'rev-desc' %}selected{% endif %}>Revenue groot → klein</option>
+                <option value="rev-asc" {% if request_args.get('sort') == 'rev-asc' %}selected{% endif %}>Revenue klein → groot</option>
+                <option value="rev-desc" {% if request_args.get('sort') == 'rev-desc' %}selected{% endif %}>Revenue groot → klein</option>
             </select>
 
             <div style="display:flex; justify-content:space-between; margin-top:10px;">
@@ -122,7 +150,6 @@
             </div>
         </form>
     </div>
-
 
     <!-- TABLE -->
     <div class="table-wrapper">
@@ -138,6 +165,7 @@
                     <th>Actie</th>
                 </tr>
             </thead>
+            
             <tbody>
                 {% for c in clients %}
                     {% set totals = client_totals[c.CLIENT_ID] %}
@@ -148,16 +176,14 @@
                         <td>{{ totals.total_production_cost }}</td>
                         <td>{{ totals.total_transport_cost }}</td>
                         <td>{{ totals.total_storage_cost }}</td>
-
                         <td>
                             <a href="{{ url_for('main.delete_client', id=c.CLIENT_ID) }}"
-                               onclick="return confirm('Zeker dat je deze client wil verwijderen?')">
-                               Delete
-                            </a>
+                               onclick="return confirm('Zeker dat je deze client wil verwijderen?')">Delete</a>
                         </td>
                     </tr>
                 {% endfor %}
             </tbody>
+
         </table>
     </div>
 
@@ -165,6 +191,7 @@
 
 </body>
 </html>
+
 
 
 
