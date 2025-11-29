@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Clients Lijst</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
+
     <style>
         .dropdown { position: relative; display: inline-block; }
         .dropdown-menu {
@@ -13,9 +14,36 @@
             border: 1px solid #ccc;
             padding: 12px;
             z-index: 10;
+            border-radius: 8px;
         }
-        .dropdown-option { display: block; margin: 6px 0; cursor: pointer; }
-        .filter-options label { display: block; margin-bottom: 8px; }
+        .dropdown-option { 
+            display: block; 
+            margin: 6px 0; 
+            cursor: pointer;
+            background: none;
+            border: none;
+            text-align: left;
+            width: 100%;
+        }
+        .filter-options label { 
+            display: block; 
+            margin-bottom: 8px; 
+        }
+        .filter-menu input, 
+        .filter-menu select {
+            width: 100%;
+            padding: 6px;
+            margin-top: 3px;
+        }
+        .filter-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+        }
+        .filter-actions button {
+            flex: 1;
+            padding: 6px;
+        }
     </style>
 </head>
 
@@ -29,6 +57,7 @@
         <h1>Clients Lijst</h1>
 
         <div class="action-group">
+
             <!-- SORT -->
             <div class="dropdown">
                 <button class="action-button" id="sortButton">Sorteer</button>
@@ -45,27 +74,42 @@
             <div class="dropdown">
                 <button class="action-button" id="filterButton">Filter</button>
                 <div class="dropdown-menu filter-menu" id="filterMenu">
+
                     <p><strong>Filter op kolom</strong></p>
+
                     <div class="filter-options">
+
                         <label>Naam
                             <input type="text" id="filterName">
                         </label>
+
                         <label>Land
-                            <input type="text" id="filterCountry">
+                            <select id="filterCountry">
+                                <option value="">-- Alle landen --</option>
+                                {% for country in countries %}
+                                    <option value="{{ country | lower }}">{{ country }}</option>
+                                {% endfor %}
+                            </select>
                         </label>
+
                         <label>Min Revenue
                             <input type="number" id="filterRevenueMin">
                         </label>
+
                         <label>Max Revenue
                             <input type="number" id="filterRevenueMax">
                         </label>
+
                     </div>
+
                     <div class="filter-actions">
                         <button type="button" id="filterApply">Apply</button>
                         <button type="button" id="filterClear">Clear</button>
                     </div>
+
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -90,7 +134,7 @@
                         data-name="{{ c.Name | lower }}"
                         data-country="{{ c.Country | lower }}"
                         data-revenue="{{ totals.total_revenue }}">
-                        
+
                         <td>{{ c.Name }}</td>
                         <td>{{ c.Country }}</td>
                         <td>{{ totals.total_revenue }}</td>
@@ -103,6 +147,7 @@
                                onclick="return confirm('Zeker dat je deze client wil verwijderen?');"
                                class="delete-btn">Delete</a>
                         </td>
+
                     </tr>
                 {% endfor %}
             </tbody>
@@ -113,7 +158,10 @@
 
 </div>
 
+
+<!-- SCRIPT -->
 <script>
+
     const sortButton = document.getElementById("sortButton");
     const sortMenu = document.getElementById("sortMenu");
     const filterButton = document.getElementById("filterButton");
@@ -123,15 +171,35 @@
         menu.style.display = menu.style.display === "block" ? "none" : "block";
     }
 
-    sortButton.onclick = e => { e.stopPropagation(); toggle(sortMenu); filterMenu.style.display="none"; };
-    filterButton.onclick = e => { e.stopPropagation(); toggle(filterMenu); sortMenu.style.display="none"; };
+    // MENU LOGICA
+    sortButton.onclick = e => { 
+        e.stopPropagation(); 
+        toggle(sortMenu); 
+        filterMenu.style.display="none"; 
+    };
 
-    document.onclick = () => { sortMenu.style.display="none"; filterMenu.style.display="none"; };
+    filterButton.onclick = e => { 
+        e.stopPropagation(); 
+        toggle(filterMenu); 
+        sortMenu.style.display="none"; 
+    };
+
+    // prevent closing when clicking INSIDE menus
+    sortMenu.onclick = event => event.stopPropagation();
+    filterMenu.onclick = event => event.stopPropagation();
+
+    // close menus when clicking outside
+    document.onclick = () => { 
+        sortMenu.style.display="none"; 
+        filterMenu.style.display="none"; 
+    };
 
     const tableBody = document.querySelector("#clientsTable tbody");
     const rows = Array.from(document.querySelectorAll(".client-row"));
     const defaultOrder = [...rows];
 
+
+    /* ---- SORTEREN ---- */
     document.querySelectorAll("#sortMenu .dropdown-option").forEach(btn => {
         btn.onclick = () => {
             let type = btn.dataset.sort;
@@ -139,13 +207,17 @@
 
             if (type === "name-asc") {
                 sorted.sort((a,b)=>a.dataset.name.localeCompare(b.dataset.name));
-            } else if (type === "name-desc") {
+            } 
+            else if (type === "name-desc") {
                 sorted.sort((a,b)=>b.dataset.name.localeCompare(a.dataset.name));
-            } else if (type === "rev-asc") {
+            } 
+            else if (type === "rev-asc") {
                 sorted.sort((a,b)=>a.dataset.revenue - b.dataset.revenue);
-            } else if (type === "rev-desc") {
+            } 
+            else if (type === "rev-desc") {
                 sorted.sort((a,b)=>b.dataset.revenue - a.dataset.revenue);
-            } else {
+            } 
+            else {
                 sorted = defaultOrder;
             }
 
@@ -154,7 +226,10 @@
         };
     });
 
+
+    /* ---- FILTEREN ---- */
     document.getElementById("filterApply").onclick = () => {
+
         const name = document.getElementById("filterName").value.toLowerCase();
         const country = document.getElementById("filterCountry").value.toLowerCase();
         const revMin = document.getElementById("filterRevenueMin").value;
@@ -167,7 +242,7 @@
 
             const ok =
                 (!name || rn.includes(name)) &&
-                (!country || rc.includes(country)) &&
+                (!country || rc === country) &&
                 (!revMin || rr >= Number(revMin)) &&
                 (!revMax || rr <= Number(revMax));
 
@@ -177,11 +252,17 @@
         filterMenu.style.display = "none";
     };
 
+
+    /* ---- CLEAR FILTER ---- */
     document.getElementById("filterClear").onclick = () => {
         document.querySelectorAll("#filterMenu input").forEach(i => i.value = "");
+        document.getElementById("filterCountry").value = "";
         rows.forEach(r => r.style.display = "");
     };
+
 </script>
 
 </body>
 </html>
+
+
