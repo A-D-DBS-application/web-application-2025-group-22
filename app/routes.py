@@ -58,13 +58,14 @@ def register():
         supplier_id = request.form.get("supplier_id")
 
         if not username or not email or not supplier_id:
-            return render_template("register.html", message="Vul alles in.")
+            return render_template("register.html", message="Vul alles in.", suppliers=SUPPLIER.query.all())
 
         existing = WEBUSER.query.filter_by(Name=username).first()
         if existing:
-            return render_template("register.html", message="Gebruiker bestaat al.")
+            return render_template("register.html", message="Gebruiker bestaat al.", suppliers=SUPPLIER.query.all())
 
-        new_user = WEBUSER(Name=username, Email=email, SUPPLIER_ID=supplier_id)
+        # FIXED: correct attribuut is SUPPLIER_id
+        new_user = WEBUSER(Name=username, Email=email, SUPPLIER_id=supplier_id)
         db.session.add(new_user)
         db.session.commit()
 
@@ -87,7 +88,6 @@ def clients():
 
     clients = CLIENT.query.all()
 
-    # maak revenue data structuur
     client_totals = {
         c.CLIENT_ID: {
             "total_revenue": 0,
@@ -98,7 +98,6 @@ def clients():
         for c in clients
     }
 
-    # omzet en productie kosten
     revenue_rows = (
         db.session.query(
             ORDER.CLIENT_ID,
@@ -199,4 +198,5 @@ def orders():
 @main.route("/costs")
 def costs():
     return render_template("costs.html")
+
 

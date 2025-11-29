@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <title>Registreren</title>
 
-    <!-- Zelfde stijl als login -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
 
     <style>
-        /* Achtergrond zoals login */
         body {
             margin: 0;
             height: 100vh;
@@ -20,7 +18,6 @@
             overflow: hidden;
         }
 
-        /* Centrale kaart */
         .register-container {
             background: #fff8f0;
             padding: 45px 55px;
@@ -110,7 +107,7 @@
             <label>Bedrijf:</label>
             <select name="supplier_id" required>
                 {% for supplier in suppliers %}
-                    <option value="{{ supplier.SUPPLIER_ID }}">{{ supplier.name }}</option>
+                    <option value="{{ supplier.SUPPLIER_ID }}">{{ supplier.Name }}</option>
                 {% endfor %}
             </select>
 
@@ -122,3 +119,4 @@
 
 </body>
 </html>
+
