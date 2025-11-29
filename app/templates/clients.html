@@ -6,45 +6,66 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
 
     <style>
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            padding: 12px;
-            z-index: 10;
-            border-radius: 8px;
-        }
-        .dropdown-option { 
-            display: block; 
-            margin: 6px 0; 
-            cursor: pointer;
-            background: none;
-            border: none;
-            text-align: left;
-            width: 100%;
-        }
-        .filter-options label { 
-            display: block; 
-            margin-bottom: 8px; 
-        }
-        .filter-menu input, 
-        .filter-menu select {
-            width: 100%;
-            padding: 6px;
-            margin-top: 3px;
-        }
-        .filter-actions {
-            margin-top: 10px;
+        .top-buttons {
             display: flex;
-            gap: 8px;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-bottom: 10px;
         }
-        .filter-actions button {
-            flex: 1;
+
+        .compact-button {
+            background-color: #a86b45;
+            padding: 10px 18px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .compact-button:hover {
+            background-color: #8c4e28;
+        }
+
+        .filter-popup {
+            position: absolute;
+            right: 50px;
+            top: 160px;
+            width: 260px;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            display: none;
+        }
+
+        .filter-popup input, .filter-popup select {
+            width: 100%;
+            margin-bottom: 10px;
             padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
         }
+
+        .filter-popup button {
+            width: 48%;
+            padding: 7px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .apply-btn { background-color: #a86b45; color: white; }
+        .reset-btn { background-color: #ddd; }
     </style>
+
+    <script>
+        function toggleFilter() {
+            const panel = document.getElementById("filter-panel");
+            panel.style.display = (panel.style.display === "block") ? "none" : "block";
+        }
+    </script>
 </head>
 
 <body>
@@ -52,70 +73,60 @@
 <div class="clients-container">
 
     <div class="page-header">
-        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+        <img src="{{ url_for('static', filename='logo.svg') }}" class="logo">
 
         <h1>Clients Lijst</h1>
 
-        <div class="action-group">
-
-            <!-- SORT -->
-            <div class="dropdown">
-                <button class="action-button" id="sortButton">Sorteer</button>
-                <div class="dropdown-menu" id="sortMenu">
-                    <button class="dropdown-option" data-sort="name-asc">Naam A → Z</button>
-                    <button class="dropdown-option" data-sort="name-desc">Naam Z → A</button>
-                    <button class="dropdown-option" data-sort="rev-asc">Revenue klein → groot</button>
-                    <button class="dropdown-option" data-sort="rev-desc">Revenue groot → klein</button>
-                    <button class="dropdown-option" data-sort="default">Standaard</button>
-                </div>
-            </div>
-
-            <!-- FILTER -->
-            <div class="dropdown">
-                <button class="action-button" id="filterButton">Filter</button>
-                <div class="dropdown-menu filter-menu" id="filterMenu">
-
-                    <p><strong>Filter op kolom</strong></p>
-
-                    <div class="filter-options">
-
-                        <label>Naam
-                            <input type="text" id="filterName">
-                        </label>
-
-                        <label>Land
-                            <select id="filterCountry">
-                                <option value="">-- Alle landen --</option>
-                                {% for country in countries %}
-                                    <option value="{{ country | lower }}">{{ country }}</option>
-                                {% endfor %}
-                            </select>
-                        </label>
-
-                        <label>Min Revenue
-                            <input type="number" id="filterRevenueMin">
-                        </label>
-
-                        <label>Max Revenue
-                            <input type="number" id="filterRevenueMax">
-                        </label>
-
-                    </div>
-
-                    <div class="filter-actions">
-                        <button type="button" id="filterApply">Apply</button>
-                        <button type="button" id="filterClear">Clear</button>
-                    </div>
-
-                </div>
-            </div>
-
+        <div class="top-buttons">
+            <button class="compact-button" onclick="toggleFilter()">Filter</button>
+            <button class="compact-button" onclick="toggleSort()">Sorteer</button>
         </div>
     </div>
 
-    <!-- TABEL -->
+    <!-- FILTER PANEL -->
+    <div id="filter-panel" class="filter-popup">
+
+        <form method="get">
+            <label>Naam:</label>
+            <input type="text" name="name" value="{{ request_args.get('name','') }}">
+
+            <label>Land:</label>
+            <select name="country">
+                <option value="">-- Alle landen --</option>
+                {% for country in countries %}
+                    <option value="{{ country|lower }}"
+                        {% if request_args.get('country','') == country|lower %} selected {% endif %}>
+                        {{ country }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label>Min Revenue:</label>
+            <input type="number" name="min_rev" value="{{ request_args.get('min_rev','') }}">
+
+            <label>Max Revenue:</label>
+            <input type="number" name="max_rev" value="{{ request_args.get('max_rev','') }}">
+
+            <label>Sorteer op:</label>
+            <select name="sort">
+                <option value="default">Standaard</option>
+                <option value="name-asc"  {% if request_args.get('sort') == 'name-asc' %}selected{% endif %}>Naam A → Z</option>
+                <option value="name-desc" {% if request_args.get('sort') == 'name-desc' %}selected{% endif %}>Naam Z → A</option>
+                <option value="rev-asc"   {% if request_args.get('sort') == 'rev-asc' %}selected{% endif %}>Revenue klein → groot</option>
+                <option value="rev-desc"  {% if request_args.get('sort') == 'rev-desc' %}selected{% endif %}>Revenue groot → klein</option>
+            </select>
+
+            <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                <button type="submit" class="apply-btn">Apply</button>
+                <a href="/clients" class="reset-btn">Clear</a>
+            </div>
+        </form>
+    </div>
+
+
+    <!-- TABLE -->
     <div class="table-wrapper">
-        <table id="clientsTable" class="webusers-table">
+        <table class="webusers-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -130,11 +141,7 @@
             <tbody>
                 {% for c in clients %}
                     {% set totals = client_totals[c.CLIENT_ID] %}
-                    <tr class="client-row"
-                        data-name="{{ c.Name | lower }}"
-                        data-country="{{ c.Country | lower }}"
-                        data-revenue="{{ totals.total_revenue }}">
-
+                    <tr>
                         <td>{{ c.Name }}</td>
                         <td>{{ c.Country }}</td>
                         <td>{{ totals.total_revenue }}</td>
@@ -144,125 +151,21 @@
 
                         <td>
                             <a href="{{ url_for('main.delete_client', id=c.CLIENT_ID) }}"
-                               onclick="return confirm('Zeker dat je deze client wil verwijderen?');"
-                               class="delete-btn">Delete</a>
+                               onclick="return confirm('Zeker dat je deze client wil verwijderen?')">
+                               Delete
+                            </a>
                         </td>
-
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <button class="back-button" onclick="window.location.href='/home'">Terug</button>
-
 </div>
-
-
-<!-- SCRIPT -->
-<script>
-
-    const sortButton = document.getElementById("sortButton");
-    const sortMenu = document.getElementById("sortMenu");
-    const filterButton = document.getElementById("filterButton");
-    const filterMenu = document.getElementById("filterMenu");
-
-    function toggle(menu) {
-        menu.style.display = menu.style.display === "block" ? "none" : "block";
-    }
-
-    // MENU LOGICA
-    sortButton.onclick = e => { 
-        e.stopPropagation(); 
-        toggle(sortMenu); 
-        filterMenu.style.display="none"; 
-    };
-
-    filterButton.onclick = e => { 
-        e.stopPropagation(); 
-        toggle(filterMenu); 
-        sortMenu.style.display="none"; 
-    };
-
-    // prevent closing when clicking INSIDE menus
-    sortMenu.onclick = event => event.stopPropagation();
-    filterMenu.onclick = event => event.stopPropagation();
-
-    // close menus when clicking outside
-    document.onclick = () => { 
-        sortMenu.style.display="none"; 
-        filterMenu.style.display="none"; 
-    };
-
-    const tableBody = document.querySelector("#clientsTable tbody");
-    const rows = Array.from(document.querySelectorAll(".client-row"));
-    const defaultOrder = [...rows];
-
-
-    /* ---- SORTEREN ---- */
-    document.querySelectorAll("#sortMenu .dropdown-option").forEach(btn => {
-        btn.onclick = () => {
-            let type = btn.dataset.sort;
-            let sorted = [...rows];
-
-            if (type === "name-asc") {
-                sorted.sort((a,b)=>a.dataset.name.localeCompare(b.dataset.name));
-            } 
-            else if (type === "name-desc") {
-                sorted.sort((a,b)=>b.dataset.name.localeCompare(a.dataset.name));
-            } 
-            else if (type === "rev-asc") {
-                sorted.sort((a,b)=>a.dataset.revenue - b.dataset.revenue);
-            } 
-            else if (type === "rev-desc") {
-                sorted.sort((a,b)=>b.dataset.revenue - a.dataset.revenue);
-            } 
-            else {
-                sorted = defaultOrder;
-            }
-
-            sorted.forEach(r => tableBody.appendChild(r));
-            sortMenu.style.display = "none";
-        };
-    });
-
-
-    /* ---- FILTEREN ---- */
-    document.getElementById("filterApply").onclick = () => {
-
-        const name = document.getElementById("filterName").value.toLowerCase();
-        const country = document.getElementById("filterCountry").value.toLowerCase();
-        const revMin = document.getElementById("filterRevenueMin").value;
-        const revMax = document.getElementById("filterRevenueMax").value;
-
-        rows.forEach(r => {
-            const rn = r.dataset.name;
-            const rc = r.dataset.country;
-            const rr = Number(r.dataset.revenue);
-
-            const ok =
-                (!name || rn.includes(name)) &&
-                (!country || rc === country) &&
-                (!revMin || rr >= Number(revMin)) &&
-                (!revMax || rr <= Number(revMax));
-
-            r.style.display = ok ? "" : "none";
-        });
-
-        filterMenu.style.display = "none";
-    };
-
-
-    /* ---- CLEAR FILTER ---- */
-    document.getElementById("filterClear").onclick = () => {
-        document.querySelectorAll("#filterMenu input").forEach(i => i.value = "");
-        document.getElementById("filterCountry").value = "";
-        rows.forEach(r => r.style.display = "");
-    };
-
-</script>
 
 </body>
 </html>
+
+
 
 

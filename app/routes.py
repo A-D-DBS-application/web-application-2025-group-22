@@ -85,8 +85,26 @@ def home_page():
 @main.route("/clients")
 def clients():
 
-    clients = CLIENT.query.all()
+    # URL parameters
+    name = request.args.get("name", "").strip().lower()
+    country = request.args.get("country", "").strip().lower()
+    min_rev = request.args.get("min_rev", "")
+    max_rev = request.args.get("max_rev", "")
+    sort = request.args.get("sort", "default")
 
+    # Basisquery
+    query = CLIENT.query
+
+    # Filtering
+    if name:
+        query = query.filter(func.lower(CLIENT.Name).like(f"%{name}%"))
+
+    if country:
+        query = query.filter(func.lower(CLIENT.Country) == country)
+
+    clients = query.all()
+
+    # Totals dictionary
     client_totals = {
         c.CLIENT_ID: {
             "total_revenue": 0,
@@ -97,42 +115,64 @@ def clients():
         for c in clients
     }
 
-    # Total revenue (Paid_price is al totale lijnprijs)
+    # Revenue
     revenue_rows = (
         db.session.query(
             ORDER.CLIENT_ID,
             func.sum(ORDER_LINE.Paid_price).label("total_revenue")
         )
         .join(ORDER_LINE, ORDER.ORDER_NR == ORDER_LINE.ORDER_NR)
+        .filter(ORDER.CLIENT_ID.in_([c.CLIENT_ID for c in clients]))
         .group_by(ORDER.CLIENT_ID)
         .all()
     )
     for row in revenue_rows:
         client_totals[row.CLIENT_ID]["total_revenue"] = float(row.total_revenue or 0)
 
-    # Production cost (Quantity × Production_cost)
+    # Production cost
     production_rows = (
         db.session.query(
             ORDER.CLIENT_ID,
-            func.sum(ORDER_LINE.Quantity * PRODUCT_COST.Production_cost).label("total_production_cost"),
+            func.sum(ORDER_LINE.Quantity * PRODUCT_COST.Production_cost).label("total_production_cost")
         )
         .join(ORDER_LINE, ORDER.ORDER_NR == ORDER_LINE.ORDER_NR)
         .join(PRODUCT, PRODUCT.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
         .join(PRODUCT_COST, PRODUCT_COST.PRODUCT_ID == PRODUCT.PRODUCT_ID)
+        .filter(ORDER.CLIENT_ID.in_([c.CLIENT_ID for c in clients]))
         .group_by(ORDER.CLIENT_ID)
         .all()
     )
     for row in production_rows:
         client_totals[row.CLIENT_ID]["total_production_cost"] = float(row.total_production_cost or 0)
 
-    countries = sorted({c.Country for c in clients if c.Country})
+    # Revenue threshold filtering
+    if min_rev:
+        clients = [c for c in clients if client_totals[c.CLIENT_ID]["total_revenue"] >= float(min_rev)]
+    if max_rev:
+        clients = [c for c in clients if client_totals[c.CLIENT_ID]["total_revenue"] <= float(max_rev)]
+
+    # Sorting
+    if sort == "name-asc":
+        clients = sorted(clients, key=lambda c: c.Name.lower())
+    elif sort == "name-desc":
+        clients = sorted(clients, key=lambda c: c.Name.lower(), reverse=True)
+    elif sort == "rev-asc":
+        clients = sorted(clients, key=lambda c: client_totals[c.CLIENT_ID]["total_revenue"])
+    elif sort == "rev-desc":
+        clients = sorted(clients, key=lambda c: client_totals[c.CLIENT_ID]["total_revenue"], reverse=True)
+
+    # All countries for dropdown
+    countries = sorted({c.Country for c in CLIENT.query.all()})
 
     return render_template(
         "clients.html",
         clients=clients,
         client_totals=client_totals,
         countries=countries,
+        request_args=request.args
     )
+
+
 
 
 # -------------------------
