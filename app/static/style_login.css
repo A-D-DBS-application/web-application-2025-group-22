@@ -1,0 +1,61 @@
+/* NEUTRALE LOGIN PAGINA — GEEN LIQ STYLING */
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f2e8d5; /* neutrale beige kleur */
+    height: 100vh;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.login-container {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    width: 340px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+h1 {
+    color: #6e3c1b;
+    margin-bottom: 25px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: 1px solid #c7b299;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    margin-top: 10px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    background: #a86b45;
+    color: #fff;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #8c4e28;
+}
+
+.message {
+    color: #b23b3b;
+    margin-top: 15px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

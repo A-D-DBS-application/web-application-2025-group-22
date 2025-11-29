@@ -1,92 +1,96 @@
-/* Algemene stijl */
+/* --- LIQ HOME STYLE (zelfde stijl als login) --- */
+
+/* Achtergrond met LIQ-afbeelding */
 body {
     margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background: url("/static/LIQ_BN_banner.webp") no-repeat center center fixed;
+    background-size: cover;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(to bottom right, #f8e7cf, #e2c6a4);
-    overflow: hidden;
     position: relative;
 }
 
-/* Zwevend ijsje bovenaan */
-.floating-ice {
-    position: absolute;
-    top: 1%; /* ⬅️ hoger geplaatst */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 190px;
-    z-index: 5;
-    animation: float 5s ease-in-out infinite;
+/* Soft overlay met blur */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 245, 230, 0.6);
+    backdrop-filter: blur(2px);
+    z-index: -1;
 }
-
-
 
 /* Centrale container */
 .home-container {
     background: #fff8f0;
     padding: 50px 60px;
     border-radius: 25px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
     text-align: center;
-    width: 700px;
-    animation: fadeIn 0.6s ease-in-out;
-    z-index: 10;
+    max-width: 700px;
+    animation: fadeIn 0.7s ease;
 }
 
 /* Logo */
 .logo {
-    width: 130px;
-    margin-bottom: 25px;
+    width: 160px;
+    margin-bottom: 10px;
 }
 
-/* Tekst */
+/* Titel */
 h1 {
-    color: #6e3c1b;
+    color: #7a3e1e;
     font-size: 28px;
     margin-bottom: 10px;
 }
 
 .subtitle {
-    color: #8a5738;
-    font-size: 18px;
-    margin-bottom: 30px;
+    color: #8b5a38;
+    margin-bottom: 25px;
+    font-size: 16px;
 }
 
 /* Knoppen */
 .button-group {
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 15px;
 }
 
-button {
-    padding: 12px 24px;
-    font-size: 15px;
+.button-group button {
+    padding: 12px 25px;
+    background-color: #a86839;
+    color: white;
     border: none;
-    background-color: #a86b45;
-    color: #fff8f0;
     border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
+    min-width: 120px;
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-button:hover {
+.button-group button:hover {
     background-color: #8c4e28;
     transform: translateY(-2px);
 }
 
-/* Animaties */
+/* Animatie */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes float {
-    0% { transform: translate(-50%, 0px); }
-    50% { transform: translate(-50%, -15px); }
-    100% { transform: translate(-50%, 0px); }
+/* IJsje bovenaan (optioneel) */
+.floating-ice {
+    width: 120px;
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
 }
