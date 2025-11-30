@@ -8,16 +8,13 @@
 
 <body>
 
-    <!-- CENTRALE CONTAINER -->
     <div class="users-container">
 
-        <!-- LOGO + TITEL -->
         <div class="header-block">
             <img src="{{ url_for('static', filename='logo.svg') }}" class="logo">
             <h1 class="title">Webusers Lijst</h1>
         </div>
 
-        <!-- TABEL -->
         <div class="table-wrapper">
             <table class="users-table">
                 <thead>
@@ -26,6 +23,7 @@
                         <th>Name</th>
                         <th>Supplier</th>
                         <th>Email</th>
+                        <th>Last seen</th>
                     </tr>
                 </thead>
 
@@ -35,7 +33,6 @@
                         <td>{{ user.WEBUSER_id }}</td>
                         <td>{{ user.Name }}</td>
 
-                        <!-- Supplier tonen (kan None zijn als nog niet ingevuld) -->
                         <td>
                             {% if user.supplier %}
                                 {{ user.supplier.Name }}
@@ -45,6 +42,15 @@
                         </td>
 
                         <td>{{ user.Email }}</td>
+
+                        <!-- Nieuwe kolom -->
+                        <td>
+                            {% if user.Last_seen %}
+                                {{ user.Last_seen.strftime('%d-%m-%Y %H:%M') }}
+                            {% else %}
+                                <i>Nooit</i>
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -57,5 +63,6 @@
 
 </body>
 </html>
+
 
 

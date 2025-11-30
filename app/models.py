@@ -1,4 +1,5 @@
 from . import db
+from datetime import datetime
 
 # ---------------- WEBUSER ----------------
 class WEBUSER(db.Model):
@@ -9,6 +10,9 @@ class WEBUSER(db.Model):
     Name = db.Column(db.String)
     Email = db.Column(db.String)
     Role = db.Column(db.String)
+
+    # Nieuw veld
+    Last_seen = db.Column(db.DateTime, default=None)
 
     supplier = db.relationship("SUPPLIER", backref="webusers")
 
@@ -142,5 +146,3 @@ class ORDER_LINE(db.Model):
 
     def __repr__(self):
         return f"<ORDER_LINE {self.ORDER_LINE_NR} order={self.ORDER_NR} product={self.PRODUCT_ID}>"
-
-

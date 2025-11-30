@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from sqlalchemy import func
+from datetime import datetime
 from . import db
 
 from .models import (
@@ -45,6 +46,11 @@ def login():
     if action == "login":
         if not user:
             return render_template("login.html", message="Gebruiker niet gevonden.")
+
+        # --- Last_seen opslaan ---
+        user.Last_seen = datetime.now()
+        db.session.commit()
+
         return redirect(url_for("main.home_page"))
 
     return render_template("login.html", message="Ongeldige actie.")
@@ -85,17 +91,14 @@ def home_page():
 @main.route("/clients")
 def clients():
 
-    # URL parameters
     name = request.args.get("name", "").strip().lower()
     country = request.args.get("country", "").strip().lower()
     min_rev = request.args.get("min_rev", "")
     max_rev = request.args.get("max_rev", "")
     sort = request.args.get("sort", "default")
 
-    # Basisquery
     query = CLIENT.query
 
-    # Filtering
     if name:
         query = query.filter(func.lower(CLIENT.Name).like(f"%{name}%"))
 
@@ -104,7 +107,6 @@ def clients():
 
     clients = query.all()
 
-    # Totals dictionary
     client_totals = {
         c.CLIENT_ID: {
             "total_revenue": 0,
@@ -115,7 +117,6 @@ def clients():
         for c in clients
     }
 
-    # Revenue
     revenue_rows = (
         db.session.query(
             ORDER.CLIENT_ID,
@@ -129,7 +130,6 @@ def clients():
     for row in revenue_rows:
         client_totals[row.CLIENT_ID]["total_revenue"] = float(row.total_revenue or 0)
 
-    # Production cost
     production_rows = (
         db.session.query(
             ORDER.CLIENT_ID,
@@ -145,13 +145,11 @@ def clients():
     for row in production_rows:
         client_totals[row.CLIENT_ID]["total_production_cost"] = float(row.total_production_cost or 0)
 
-    # Revenue threshold filtering
     if min_rev:
         clients = [c for c in clients if client_totals[c.CLIENT_ID]["total_revenue"] >= float(min_rev)]
     if max_rev:
         clients = [c for c in clients if client_totals[c.CLIENT_ID]["total_revenue"] <= float(max_rev)]
 
-    # Sorting
     if sort == "name-asc":
         clients = sorted(clients, key=lambda c: c.Name.lower())
     elif sort == "name-desc":
@@ -161,7 +159,6 @@ def clients():
     elif sort == "rev-desc":
         clients = sorted(clients, key=lambda c: client_totals[c.CLIENT_ID]["total_revenue"], reverse=True)
 
-    # All countries for dropdown
     countries = sorted({c.Country for c in CLIENT.query.all()})
 
     return render_template(
@@ -171,8 +168,6 @@ def clients():
         countries=countries,
         request_args=request.args
     )
-
-
 
 
 # -------------------------
@@ -221,7 +216,7 @@ def products():
 
 
 # -------------------------
-# ORDERS (NEW + FIXED)
+# ORDERS
 # -------------------------
 @main.route("/orders")
 def orders():
@@ -246,11 +241,12 @@ def orders():
 
 
 # -------------------------
-# COSTS PAGE
+# COSTS
 # -------------------------
 @main.route("/costs")
 def costs():
     return render_template("costs.html")
+
 
 
 
