@@ -13,7 +13,9 @@
 
         <!-- LOGO + TITEL -->
         <div class="header-block">
-            <img src="{{ url_for('static', filename='logo.svg') }}" class="logo">
+            <a href="{{ url_for('main.home_page') }}" class="logo-link">
+                <img src="{{ url_for('static', filename='logo.svg') }}" class="logo" alt="Liq logo">
+            </a>
             <h1 class="title">Webusers Lijst</h1>
         </div>
 

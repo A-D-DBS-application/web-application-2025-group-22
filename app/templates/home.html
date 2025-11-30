@@ -10,7 +10,9 @@
 
     <!-- CENTRALE CONTAINER -->
     <div class="home-container">
-        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+        <a href="{{ url_for('main.home_page') }}" class="logo-link">
+            <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+        </a>
 
         <h1>Welkom op de homepagina! </h1>
         <p class="subtitle">Kies een optie om verder te gaan.</p>

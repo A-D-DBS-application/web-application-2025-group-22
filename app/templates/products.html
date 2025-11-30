@@ -13,7 +13,9 @@
 
         <!-- HEADER MET LOGO EN TITEL -->
         <div class="page-header">
-            <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+            <a href="{{ url_for('main.home_page') }}" class="logo-link">
+                <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+            </a>
             <div class="page-title"><h1>Producten</h1></div>
         </div>
 
