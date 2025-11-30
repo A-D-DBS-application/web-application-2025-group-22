@@ -13,6 +13,11 @@
             margin-bottom: 10px;
         }
 
+        .logo-link {
+            display: inline-flex;
+            align-items: center;
+        }
+
         .compact-button {
             background-color: #a86b45;
             padding: 10px 18px;
@@ -86,14 +91,19 @@
 
     <!-- HEADER -->
     <div class="page-header">
-        <img src="{{ url_for('static', filename='logo.svg') }}" class="logo">
+        <a href="{{ url_for('main.home_page') }}" class="logo-link">
+            <img src="{{ url_for('static', filename='logo.svg') }}" class="logo" alt="Liq logo">
+        </a>
         <h1>Clients Lijst</h1>
 
         <div class="top-buttons">
+            <button class="compact-button" onclick="window.location.href='/home'">Home</button>
             <button class="compact-button" onclick="toggleFilter()">Filter</button>
             <button class="compact-button" onclick="toggleSort()">Sorteer</button>
         </div>
     </div>
+
+    <button class="back-button" onclick="window.location.href='/home'">Terug</button>
 
     <!-- FILTER PANEL -->
     <div id="filter-panel" class="popup-panel">
@@ -191,6 +201,12 @@
 
 </body>
 </html>
+
+
+
+
+
+
 
 
 
