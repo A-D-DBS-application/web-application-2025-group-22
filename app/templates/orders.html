@@ -4,6 +4,27 @@
     <meta charset="UTF-8">
     <title>Orders Lijst</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
+    <style>
+        .popup {
+            position: fixed;
+            top: 20%;
+            right: 10%;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 20;
+            min-width: 260px;
+        }
+        .popup button, .popup input {
+            margin-top: 8px;
+            width: 100%;
+        }
+        .popup h3 {
+            margin-bottom: 12px;
+        }
+    </style>
 </head>
 
 <body>
@@ -21,6 +42,45 @@
         </div>
 
         <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+
+        <!-- SORT POPUP -->
+        <div id="sortPopup" class="popup">
+            <h3>Sorteer op:</h3>
+
+            <button onclick="applySort('date-desc')">Nieuwste eerst</button>
+            <button onclick="applySort('date-asc')">Oudste eerst</button>
+
+            <button onclick="applySort('quantity-desc')">Meeste Quantity</button>
+            <button onclick="applySort('quantity-asc')">Minste Quantity</button>
+
+            <button onclick="applySort('price-desc')">Duurste eerst</button>
+            <button onclick="applySort('price-asc')">Goedkoopste eerst</button>
+
+            <button onclick="closeSortPopup()">Sluiten</button>
+        </div>
+
+        <!-- FILTER POPUP -->
+        <div id="filterPopup" class="popup">
+            <h3>Filter</h3>
+
+            <form method="get">
+
+                <label>Min Quantity:</label>
+                <input type="number" name="min_q">
+
+                <label>Max Quantity:</label>
+                <input type="number" name="max_q">
+
+                <label>Product ID:</label>
+                <input type="number" name="product_id">
+
+                <label>Client ID:</label>
+                <input type="number" name="client_id">
+
+                <button type="submit">Filter toepassen</button>
+                <button type="button" onclick="closeFilterPopup()">Sluiten</button>
+            </form>
+        </div>
 
         <div class="table-wrapper">
             <table id="ordersTable" class="webusers-table">
@@ -40,11 +100,7 @@
 
                 <tbody>
                     {% for o in order_rows %}
-                    <tr 
-                        class="order-row"
-                        data-product="{{ o.PRODUCT_ID }}"
-                        data-unit-price="{{ o.Unit_price }}"
-                    >
+                    <tr>
                         <td>{{ o.ORDER_LINE_NR }}</td>
                         <td>{{ o.ORDER_NR }}</td>
                         <td>{{ o.CLIENT_ID }}</td>
@@ -62,7 +118,24 @@
 
     </div>
 
+<script>
+    // --- Sort Popup ---
+    const sortPopup = document.getElementById("sortPopup");
+    document.getElementById("sortButton").onclick = () => sortPopup.style.display = "block";
+    function closeSortPopup() { sortPopup.style.display = "none"; }
+
+    function applySort(option) {
+        window.location = "?sort=" + option;
+    }
+
+    // --- Filter Popup ---
+    const filterPopup = document.getElementById("filterPopup");
+    document.getElementById("filterButton").onclick = () => filterPopup.style.display = "block";
+    function closeFilterPopup() { filterPopup.style.display = "none"; }
+</script>
+
 </body>
 </html>
+
 
 

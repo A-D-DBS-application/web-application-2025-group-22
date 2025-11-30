@@ -220,7 +220,16 @@ def products():
 # -------------------------
 @main.route("/orders")
 def orders():
-    rows = (
+
+    # --- GET parameters ---
+    sort = request.args.get("sort", "")
+    min_q = request.args.get("min_q", type=int)
+    max_q = request.args.get("max_q", type=int)
+    product_id = request.args.get("product_id", type=int)
+    client_id = request.args.get("client_id", type=int)
+
+    # --- Basisquery ---
+    query = (
         db.session.query(
             ORDER_LINE.ORDER_LINE_NR,
             ORDER_LINE.ORDER_NR,
@@ -234,10 +243,39 @@ def orders():
         )
         .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
         .join(PRODUCT, PRODUCT.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
-        .all()
     )
 
+    # --- Filters ---
+    if min_q is not None:
+        query = query.filter(ORDER_LINE.Quantity >= min_q)
+
+    if max_q is not None:
+        query = query.filter(ORDER_LINE.Quantity <= max_q)
+
+    if product_id is not None:
+        query = query.filter(ORDER_LINE.PRODUCT_ID == product_id)
+
+    if client_id is not None:
+        query = query.filter(ORDER.CLIENT_ID == client_id)
+
+    # --- Sorting ---
+    if sort == "quantity-asc":
+        query = query.order_by(ORDER_LINE.Quantity.asc())
+    elif sort == "quantity-desc":
+        query = query.order_by(ORDER_LINE.Quantity.desc())
+    elif sort == "date-asc":
+        query = query.order_by(ORDER.Order_date.asc())
+    elif sort == "date-desc":
+        query = query.order_by(ORDER.Order_date.desc())
+    elif sort == "price-asc":
+        query = query.order_by(PRODUCT.Sell_price_per_product.asc())
+    elif sort == "price-desc":
+        query = query.order_by(PRODUCT.Sell_price_per_product.desc())
+
+    rows = query.all()
+
     return render_template("orders.html", order_rows=rows)
+
 
 
 # -------------------------
