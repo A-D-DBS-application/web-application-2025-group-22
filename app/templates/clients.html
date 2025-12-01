@@ -66,7 +66,6 @@
         .reset-btn { background-color: #ddd; }
     </style>
 
-    <!-- ★★★★★ JAVASCRIPT MET CLICK-OUTSIDE-CLOSE ★★★★★ -->
     <script>
         function togglePanel(id) {
             hideAllPanels();
@@ -79,9 +78,11 @@
         function toggleAdjust() { togglePanel("adjust-panel"); }
 
         function hideAllPanels() {
-            document.getElementById("filter-panel").style.display = "none";
-            document.getElementById("sort-panel").style.display = "none";
-            document.getElementById("adjust-panel").style.display = "none";
+            const ids = ["filter-panel", "sort-panel", "adjust-panel"];
+            ids.forEach(i => {
+                const el = document.getElementById(i);
+                if (el) el.style.display = "none";
+            });
         }
 
         // CLICK OUTSIDE PANELS TO CLOSE
@@ -89,7 +90,7 @@
             const panels = ["filter-panel", "sort-panel", "adjust-panel"];
             const clickedInside = panels.some(id => {
                 const p = document.getElementById(id);
-                return p.contains(e.target);
+                return p && p.contains(e.target);
             });
 
             const isButton = e.target.classList.contains("compact-button");
@@ -115,6 +116,7 @@
 
         <div class="top-buttons">
             <button class="compact-button" onclick="window.location.href='/home'">Home</button>
+            <button class="compact-button" onclick="window.location.href='/forecast'">Forecast</button>
             <button class="compact-button" onclick="toggleFilter()">Filter</button>
             <button class="compact-button" onclick="toggleSort()">Sorteer</button>
             <button class="compact-button" onclick="toggleAdjust()">Adjust</button>
@@ -242,6 +244,7 @@
 
 </body>
 </html>
+
 
 
 
