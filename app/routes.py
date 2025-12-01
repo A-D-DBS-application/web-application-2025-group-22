@@ -63,11 +63,19 @@ def register():
         supplier_id = request.form.get("supplier_id")
 
         if not username or not email or not supplier_id:
-            return render_template("register.html", message="Vul alles in.", suppliers=SUPPLIER.query.all())
+            return render_template(
+                "register.html",
+                message="Vul alles in.",
+                suppliers=SUPPLIER.query.all()
+            )
 
         existing = WEBUSER.query.filter_by(Name=username).first()
         if existing:
-            return render_template("register.html", message="Gebruiker bestaat al.", suppliers=SUPPLIER.query.all())
+            return render_template(
+                "register.html",
+                message="Gebruiker bestaat al.",
+                suppliers=SUPPLIER.query.all()
+            )
 
         new_user = WEBUSER(Name=username, Email=email, SUPPLIER_id=supplier_id)
         db.session.add(new_user)
@@ -219,7 +227,7 @@ def delete_client_by_name():
 
 
 # -------------------------
-# SUPPLIERS
+# SUPPLIERS LIST
 # -------------------------
 @main.route("/suppliers")
 def suppliers():
@@ -227,7 +235,7 @@ def suppliers():
 
 
 # -------------------------
-# WEBUSERS
+# WEBUSERS LIST
 # -------------------------
 @main.route("/webusers")
 def webusers():
@@ -251,7 +259,7 @@ def products():
 
 
 # -------------------------
-# ORDERS
+# ORDERS (WITH SUPPLIER + PRODUCT NAMES)
 # -------------------------
 @main.route("/orders")
 def orders():
@@ -262,13 +270,14 @@ def orders():
     product_id = request.args.get("product_id", type=int)
     client_id = request.args.get("client_id", type=int)
 
+    # UPDATED QUERY: supplier + product names added
     query = (
         db.session.query(
             ORDER_LINE.ORDER_LINE_NR,
             ORDER_LINE.ORDER_NR,
             ORDER.CLIENT_ID,
-            ORDER.SUPPLIER_ID,
-            ORDER_LINE.PRODUCT_ID.label("PRODUCT_ID"),
+            SUPPLIER.Name.label("SupplierName"),
+            PRODUCT.Name.label("ProductName"),
             ORDER_LINE.Quantity,
             PRODUCT.Sell_price_per_product.label("Unit_price"),
             ORDER_LINE.Currency,
@@ -276,6 +285,7 @@ def orders():
         )
         .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
         .join(PRODUCT, PRODUCT.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
+        .join(SUPPLIER, SUPPLIER.SUPPLIER_ID == ORDER.SUPPLIER_ID)
     )
 
     if min_q is not None:
@@ -309,11 +319,12 @@ def orders():
 
 
 # -------------------------
-# COSTS
+# COSTS PAGE
 # -------------------------
 @main.route("/costs")
 def costs():
     return render_template("costs.html")
+
 
 
 

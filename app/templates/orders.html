@@ -64,7 +64,6 @@
             <h3>Filter</h3>
 
             <form method="get">
-
                 <label>Min Quantity:</label>
                 <input type="number" name="min_q">
 
@@ -89,8 +88,8 @@
                         <th>ORDER_LINE_NR</th>
                         <th>ORDER_NR</th>
                         <th>CLIENT_ID</th>
-                        <th>SUPPLIER_ID</th>
-                        <th>PRODUCT_ID</th>
+                        <th>Supplier</th>
+                        <th>Product</th>
                         <th>Quantity</th>
                         <th>Unit Price</th>
                         <th>Currency</th>
@@ -104,8 +103,8 @@
                         <td>{{ o.ORDER_LINE_NR }}</td>
                         <td>{{ o.ORDER_NR }}</td>
                         <td>{{ o.CLIENT_ID }}</td>
-                        <td>{{ o.SUPPLIER_ID }}</td>
-                        <td>{{ o.PRODUCT_ID }}</td>
+                        <td>{{ o.SupplierName }}</td>
+                        <td>{{ o.ProductName }}</td>
                         <td>{{ o.Quantity }}</td>
                         <td>{{ o.Unit_price }}</td>
                         <td>{{ o.Currency }}</td>
@@ -119,7 +118,7 @@
     </div>
 
 <script>
-    // --- Sort Popup ---
+    // Sort Popup
     const sortPopup = document.getElementById("sortPopup");
     document.getElementById("sortButton").onclick = () => sortPopup.style.display = "block";
     function closeSortPopup() { sortPopup.style.display = "none"; }
@@ -128,7 +127,7 @@
         window.location = "?sort=" + option;
     }
 
-    // --- Filter Popup ---
+    // Filter Popup
     const filterPopup = document.getElementById("filterPopup");
     document.getElementById("filterButton").onclick = () => filterPopup.style.display = "block";
     function closeFilterPopup() { filterPopup.style.display = "none"; }
@@ -136,6 +135,7 @@
 
 </body>
 </html>
+
 
 
 
