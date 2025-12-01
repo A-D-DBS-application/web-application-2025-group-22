@@ -31,7 +31,7 @@
             background-color: #8c4e28;
         }
 
-        /* Popup Panels (Filter + Sort) */
+        /* Popup Panels */
         .popup-panel {
             position: absolute;
             right: 40px;
@@ -67,21 +67,38 @@
     </style>
 
     <script>
-        function toggleFilter() {
-            const filter = document.getElementById("filter-panel");
-            const sort = document.getElementById("sort-panel");
-
-            sort.style.display = "none";  
-            filter.style.display = filter.style.display === "block" ? "none" : "block";
+        function togglePanel(id) {
+            hideAllPanels();
+            const p = document.getElementById(id);
+            p.style.display = (p.style.display === "block" ? "none" : "block");
         }
 
-        function toggleSort() {
-            const filter = document.getElementById("filter-panel");
-            const sort = document.getElementById("sort-panel");
+        function toggleFilter() { togglePanel("filter-panel"); }
+        function toggleSort()   { togglePanel("sort-panel"); }
+        function toggleAdjust() { togglePanel("adjust-panel"); }
 
-            filter.style.display = "none";
-            sort.style.display = sort.style.display === "block" ? "none" : "block";
+        function hideAllPanels() {
+            const ids = ["filter-panel", "sort-panel", "adjust-panel"];
+            ids.forEach(i => {
+                const el = document.getElementById(i);
+                if (el) el.style.display = "none";
+            });
         }
+
+        // CLICK OUTSIDE PANELS TO CLOSE
+        document.addEventListener("click", function(e) {
+            const panels = ["filter-panel", "sort-panel", "adjust-panel"];
+            const clickedInside = panels.some(id => {
+                const p = document.getElementById(id);
+                return p && p.contains(e.target);
+            });
+
+            const isButton = e.target.classList.contains("compact-button");
+
+            if (!clickedInside && !isButton) {
+                hideAllPanels();
+            }
+        });
     </script>
 </head>
 
@@ -96,10 +113,13 @@
         </a>
         <h1>Clients List</h1>
 
+
         <div class="top-buttons">
             <button class="compact-button" onclick="window.location.href='/home'">Home</button>
+            <button class="compact-button" onclick="window.location.href='/forecast'">Forecast</button>
             <button class="compact-button" onclick="toggleFilter()">Filter</button>
             <button class="compact-button" onclick="toggleSort()">Sorteer</button>
+            <button class="compact-button" onclick="toggleAdjust()">Adjust</button>
         </div>
     </div>
 
@@ -148,16 +168,44 @@
             <label>Sorteer op:</label>
             <select name="sort">
                 <option value="default">Standaard</option>
-                <option value="name-asc" {% if request_args.get('sort') == 'name-asc' %}selected{% endif %}>Naam A → Z</option>
-                <option value="name-desc" {% if request_args.get('sort') == 'name-desc' %}selected{% endif %}>Naam Z → A</option>
-                <option value="rev-asc" {% if request_args.get('sort') == 'rev-asc' %}selected{% endif %}>Revenue klein → groot</option>
-                <option value="rev-desc" {% if request_args.get('sort') == 'rev-desc' %}selected{% endif %}>Revenue groot → klein</option>
+                <option value="name-asc">Naam A → Z</option>
+                <option value="name-desc">Naam Z → A</option>
+                <option value="rev-asc">Revenue klein → groot</option>
+                <option value="rev-desc">Revenue groot → klein</option>
             </select>
 
             <div style="display:flex; justify-content:space-between; margin-top:10px;">
                 <button type="submit" class="apply-btn">Apply</button>
                 <a href="/clients" class="reset-btn">Clear</a>
             </div>
+        </form>
+    </div>
+
+    <!-- ADJUST PANEL -->
+    <div id="adjust-panel" class="popup-panel">
+        <h3>Adjust Clients</h3>
+
+        <!-- ADD -->
+        <form method="post" action="/clients/add" style="margin-bottom:15px;">
+            <h4>Add Client</h4>
+            <input name="name" placeholder="Name" required>
+            <input name="country" placeholder="Country" required>
+            <input name="postal_code" placeholder="Postal Code">
+            <input name="city" placeholder="City">
+            <input name="street" placeholder="Street">
+            <input name="house_number" placeholder="House Number">
+
+            <button type="submit" class="apply-btn">Add</button>
+        </form>
+
+        <hr>
+
+        <!-- DELETE -->
+        <form method="post" action="/clients/delete_by_name">
+            <h4>Delete Client</h4>
+            <input name="name" placeholder="Client Name" required>
+
+            <button type="submit" class="apply-btn" style="background-color:#d9534f;">Delete</button>
         </form>
     </div>
 
@@ -172,7 +220,6 @@
                     <th>Production Cost</th>
                     <th>Transport</th>
                     <th>Storage</th>
-                    <th>Actie</th>
                 </tr>
             </thead>
             
@@ -186,10 +233,6 @@
                         <td>{{ totals.total_production_cost }}</td>
                         <td>{{ totals.total_transport_cost }}</td>
                         <td>{{ totals.total_storage_cost }}</td>
-                        <td>
-                            <a href="{{ url_for('main.delete_client', id=c.CLIENT_ID) }}"
-                               onclick="return confirm('Zeker dat je deze client wil verwijderen?')">Delete</a>
-                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -201,6 +244,7 @@
 
 </body>
 </html>
+
 
 
 

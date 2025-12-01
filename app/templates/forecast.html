@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Revenue Forecast</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .forecast-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            margin-top: 30px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #7a4b2b;
+        }
+
+        table.forecast-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        table.forecast-table th,
+        table.forecast-table td {
+            border: 1px solid #eee;
+            padding: 6px 10px;
+            text-align: center;
+        }
+
+        table.forecast-table th {
+            background-color: #f5e3cf;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background:#f9e7d6;
+            padding:15px;
+            border-radius:8px;
+            margin-top:20px;
+            margin-bottom:25px;
+        }
+
+        .info-box h3 {
+            margin-top:0;
+            color:#7a4b2b;
+        }
+    </style>
+</head>
+<body>
+
+<div class="clients-container forecast-container">
+
+    <div class="page-header">
+        <a href="{{ url_for('main.home_page') }}">
+            <img src="{{ url_for('static', filename='logo.svg') }}" class="logo" alt="Liq logo">
+        </a>
+        <h1>Revenue Forecast</h1>
+
+        <div class="action-group">
+            <button class="action-button" onclick="window.location.href='/clients'">Terug naar Clients</button>
+            <button class="action-button" onclick="window.location.href='/home'">Home</button>
+        </div>
+    </div>
+
+    <div style="margin-top:10px; margin-bottom:20px;">
+        <p>
+            De grafiek hieronder toont de <strong>historische revenue per maand</strong> en de
+            <strong>voorspelde revenue voor de komende 12 maanden</strong>,
+            gebaseerd op een multiplicatief seizoensmodel (trend × seasonal factor).
+        </p>
+    </div>
+
+    <div class="info-box">
+        <h3>Uitleg gebruikte methode</h3>
+        <p>
+            Deze forecast maakt gebruik van <strong>T1: log-zscore winsorizing</strong> om extreme uitschieters
+            in de maandelijkse revenue te corrigeren. Dit voorkomt dat zeer grote bestellingen het
+            seizoenpatroon verstoren.
+        </p>
+        <p>
+            We log-transformeren de revenue, berekenen een z-score, en markeren outliers wanneer
+            <strong>|z| > 1.8</strong>. Deze waarden worden vervangen door de grenswaarde (winsorizing).
+            Daarna zetten we de waarden terug naar de normale schaal.
+        </p>
+        <p>
+            Vervolgens passen we een officiële <strong>12-maands centered moving average (CMA)</strong> toe om
+            trend en seizoen te scheiden. De forecast wordt vervolgens berekend als:
+            <strong>trend × seasonal factor</strong> voor de komende 12 maanden.
+        </p>
+    </div>
+
+    <!-- GRAFIEK -->
+    <canvas id="forecastChart"></canvas>
+
+    <script>
+        // Data rechtstreeks als geldige JS-arrays vanuit Jinja
+        const labels = {{ labels | tojson }};
+        const historyData = {{ history_data | tojson }};
+        const forecastData = {{ forecast_data | tojson }};
+
+        const ctx = document.getElementById('forecastChart').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Historische revenue',
+                        data: historyData,
+                        borderColor: '#7a4b2b',
+                        backgroundColor: '#7a4b2b',
+                        pointRadius: 3,
+                        borderWidth: 2,
+                        tension: 0.2
+                    },
+                    {
+                        label: 'Forecast revenue',
+                        data: forecastData,
+                        borderColor: '#c44d48',
+                        backgroundColor: '#c44d48',
+                        borderDash: [5, 5],
+                        pointRadius: 3,
+                        borderWidth: 2,
+                        tension: 0.2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Revenue (€)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Maand'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <!-- SEASONAL FACTORS -->
+    <div class="section-title">Seasonal factors per maand</div>
+    <table class="forecast-table">
+        <thead>
+            <tr>
+                <th>Maand</th>
+                <th>Seasonal factor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in seasonal_factors %}
+            <tr>
+                <td>{{ s.month }}</td>
+                <td>{{ s.factor }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- FORECAST TABEL -->
+    <div class="section-title">Forecast komende 12 maanden</div>
+    <table class="forecast-table">
+        <thead>
+            <tr>
+                <th>Periode</th>
+                <th>Forecast revenue</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in forecast_table %}
+            <tr>
+                <td>{{ f.period }}</td>
+                <td>{{ f.forecast }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- OUTLIER TABEL -->
+    <div class="section-title">Outliercorrectie (T1 - log-zscore winsorizing)</div>
+    <table class="forecast-table">
+        <thead>
+            <tr>
+                <th>Maand</th>
+                <th>Originele revenue</th>
+                <th>Gecorrigeerde revenue</th>
+                <th>Outlier?</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in outlier_table %}
+            <tr>
+                <td>{{ row.period }}</td>
+                <td>{{ row.original }}</td>
+                <td>{{ row.corrected }}</td>
+                <td>{{ row.outlier }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+</body>
+</html>
+
+
+
+
+
