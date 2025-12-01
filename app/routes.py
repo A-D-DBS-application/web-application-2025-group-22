@@ -47,7 +47,6 @@ def login():
         if not user:
             return render_template("login.html", message="Gebruiker niet gevonden.")
 
-        # --- Last_seen opslaan ---
         user.Last_seen = datetime.now()
         db.session.commit()
 
@@ -171,11 +170,47 @@ def clients():
 
 
 # -------------------------
-# DELETE CLIENT
+# ADD CLIENT
 # -------------------------
-@main.route("/clients/delete/<int:id>")
-def delete_client(id):
-    client = CLIENT.query.get(id)
+@main.route("/clients/add", methods=["POST"])
+def add_client():
+    name = request.form.get("name")
+    country = request.form.get("country")
+    postal = request.form.get("postal_code")
+    city = request.form.get("city")
+    street = request.form.get("street")
+    house = request.form.get("house_number")
+
+    if not name or not country:
+        return redirect(url_for("main.clients"))
+
+    new_client = CLIENT(
+        Name=name,
+        Country=country,
+        Postal_code=postal,
+        City=city,
+        Street=street,
+        House_number=house
+    )
+
+    db.session.add(new_client)
+    db.session.commit()
+
+    return redirect(url_for("main.clients"))
+
+
+# -------------------------
+# DELETE CLIENT BY NAME
+# -------------------------
+@main.route("/clients/delete_by_name", methods=["POST"])
+def delete_client_by_name():
+    name = request.form.get("name")
+
+    if not name:
+        return redirect(url_for("main.clients"))
+
+    client = CLIENT.query.filter(func.lower(CLIENT.Name) == name.lower()).first()
+
     if client:
         db.session.delete(client)
         db.session.commit()
@@ -221,14 +256,12 @@ def products():
 @main.route("/orders")
 def orders():
 
-    # --- GET parameters ---
     sort = request.args.get("sort", "")
     min_q = request.args.get("min_q", type=int)
     max_q = request.args.get("max_q", type=int)
     product_id = request.args.get("product_id", type=int)
     client_id = request.args.get("client_id", type=int)
 
-    # --- Basisquery ---
     query = (
         db.session.query(
             ORDER_LINE.ORDER_LINE_NR,
@@ -245,7 +278,6 @@ def orders():
         .join(PRODUCT, PRODUCT.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
     )
 
-    # --- Filters ---
     if min_q is not None:
         query = query.filter(ORDER_LINE.Quantity >= min_q)
 
@@ -258,7 +290,6 @@ def orders():
     if client_id is not None:
         query = query.filter(ORDER.CLIENT_ID == client_id)
 
-    # --- Sorting ---
     if sort == "quantity-asc":
         query = query.order_by(ORDER_LINE.Quantity.asc())
     elif sort == "quantity-desc":
@@ -277,13 +308,13 @@ def orders():
     return render_template("orders.html", order_rows=rows)
 
 
-
 # -------------------------
 # COSTS
 # -------------------------
 @main.route("/costs")
 def costs():
     return render_template("costs.html")
+
 
 
 
