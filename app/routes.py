@@ -11,7 +11,8 @@ from .models import (
     ORDER,
     ORDER_LINE,
     BRAND,
-    PRODUCT_COST
+    PRODUCT_COST,
+    CLIENT_COST,
 )
 
 main = Blueprint("main", __name__)
@@ -91,6 +92,235 @@ def register():
 def home_page():
     return render_template("home.html")
 
+
+# -------------------------
+# MARGIN PAGE
+# -------------------------
+@main.route("/margin")
+def margin_page():
+    """
+    MARGE PER KLANT (filterbaar per jaar)
+
+    - MARGE PER ORDER:
+      Omzet = ORDER.Paid_price  (totaal betaalde prijs voor de order)
+
+      Nettomarge per order =
+
+      ORDER.Paid_price
+      - som_per_product( PRODUCT_COST.Production_cost * ORDER_LINE.Quantity )
+      - som_per_product( PRODUCT_COST.Inbound_transport_cost * ORDER.Quantity )
+      - som_per_product( PRODUCT_COST.Storage_cost * ORDER_LINE.Quantity )
+      - som_per_product( (CLIENT_COST.Outbound_transport_cost * ORDER.Quantity)
+                         / aantal_orders_klant_in_het_gekozen_jaar )
+      - ( License_fee_procent * ORDER.Paid_price )
+
+    - MARGE PER KLANT:
+      GEMIDDELDE van alle nettomarges van de orders van die specifieke klant
+      in het gekozen jaar.
+    """
+
+    # -------------------------
+    # FILTERPARAMS UIT QUERYSTRING
+    # -------------------------
+    selected_year_str = request.args.get("year", "").strip()
+    selected_country = request.args.get("country", "").strip()
+    selected_client_id = request.args.get("client_id", type=int)
+
+    # year -> int / None
+    selected_year = int(selected_year_str) if selected_year_str.isdigit() else None
+
+    # -------------------------
+    # LANDEN-LIJST (voor dropdown)
+    # -------------------------
+    countries = sorted({c.Country for c in CLIENT.query.all() if c.Country})
+
+    # -------------------------
+    # JAAR-LIJST (distinct jaren met orders)
+    # -------------------------
+    year_rows = (
+        db.session.query(func.extract("year", ORDER.Order_date).label("year"))
+        .distinct()
+        .order_by("year")
+        .all()
+    )
+    years = [int(r.year) for r in year_rows if r.year is not None]
+
+    # -------------------------
+    # CLIENT-LIJST gefilterd op land
+    # -------------------------
+    client_query = CLIENT.query
+    if selected_country:
+        country_norm = selected_country.lower()
+        client_query = client_query.filter(
+            func.lower(func.trim(CLIENT.Country)) == country_norm
+        )
+
+    clients = client_query.order_by(CLIENT.Name).all()
+
+    # Default: nog niks berekend
+    total_margin = None
+    orders_for_view: list[dict] = []
+
+    # Nog niet alles gekozen -> alleen filters tonen
+    # We rekenen pas als én jaar én klant gekozen zijn.
+    if not selected_client_id or not selected_year:
+        return render_template(
+            "margin.html",
+            total_margin=total_margin,
+            orders=orders_for_view,
+            countries=countries,
+            clients=clients,
+            years=years,
+            selected_year=selected_year,
+            selected_country=selected_country,
+            selected_client_id=selected_client_id,
+        )
+
+    # -------------------------
+    # BASISFILTERS (gekozen jaar + klant [+ optioneel land])
+    # -------------------------
+    start_date = date(selected_year, 1, 1)
+    end_date = date(selected_year, 12, 31)
+
+    base_filters = [
+        ORDER.Order_date >= start_date,
+        ORDER.Order_date <= end_date,
+        ORDER.CLIENT_ID == selected_client_id,
+    ]
+    if selected_country:
+        country_norm = selected_country.lower()
+        base_filters.append(
+            func.lower(func.trim(CLIENT.Country)) == country_norm
+        )
+
+    # -------------------------
+    # AANTAL ORDERS VAN DEZE KLANT IN DIT JAAR
+    # -------------------------
+    order_count_value = (
+        db.session.query(func.count(func.distinct(ORDER.ORDER_NR)))
+        .join(CLIENT, CLIENT.CLIENT_ID == ORDER.CLIENT_ID)
+        .filter(*base_filters)
+        .scalar()
+    )
+
+    if not order_count_value:
+        # Geen orders: marge 0 en lege tabel
+        total_margin = 0.0
+        return render_template(
+            "margin.html",
+            total_margin=total_margin,
+            orders=orders_for_view,
+            countries=countries,
+            clients=clients,
+            years=years,
+            selected_year=selected_year,
+            selected_country=selected_country,
+            selected_client_id=selected_client_id,
+        )
+
+    orders_per_client_const = float(order_count_value)
+
+    # -------------------------
+    # KOSTEN MET COALESCE (NULL -> 0)
+    # -------------------------
+    inbound = func.coalesce(PRODUCT_COST.Inbound_transport_cost, 0.0)
+    prod_cost = func.coalesce(PRODUCT_COST.Production_cost, 0.0)
+    storage = func.coalesce(PRODUCT_COST.Storage_cost, 0.0)
+    outbound = func.coalesce(CLIENT_COST.Outbound_transport_cost, 0.0)
+    license_pct = func.coalesce(BRAND.License_fee_procent, 0.0)
+    # Als License_fee_procent = 5 betekent 5%, dan eventueel: license_pct_effective = license_pct / 100.0
+    license_pct_effective = license_pct
+
+    # -------------------------
+    # OMZET & KOSTEN-TERMEN
+    # -------------------------
+
+    # Omzet per order = totaal betaalde prijs
+    revenue_expr_order = func.coalesce(ORDER.Paid_price, 0.0)
+
+    # Kosten die per productregel worden opgebouwd, later gesommeerd per order
+    line_cost_expr = (
+        (prod_cost * ORDER_LINE.Quantity)
+        + (inbound * ORDER.Quantity)
+        + (storage * ORDER_LINE.Quantity)
+        + ((outbound * ORDER.Quantity) / orders_per_client_const)
+    )
+
+    # -------------------------
+    # PER ORDER:
+    #   revenue = ORDER.Paid_price
+    #   marge  = revenue
+    #           - som(line_cost_expr)
+    #           - (license_pct_order * revenue)
+    #
+    # waarbij license_pct_order = max(License_fee_procent) over de lijnen van die order
+    # (gaat ervan uit dat alle producten in de order dezelfde fee hebben).
+    # -------------------------
+    per_order_query = (
+        db.session.query(
+            ORDER.ORDER_NR.label("order_nr"),
+            ORDER.Order_date.label("order_date"),
+            revenue_expr_order.label("revenue"),
+            (
+                revenue_expr_order
+                - func.sum(line_cost_expr)
+                - (func.max(license_pct_effective) * revenue_expr_order)
+            ).label("order_margin"),
+        )
+        .select_from(ORDER_LINE)
+        .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
+        .join(PRODUCT, ORDER_LINE.PRODUCT_ID == PRODUCT.PRODUCT_ID)
+        .join(PRODUCT_COST, PRODUCT.PRODUCT_ID == PRODUCT_COST.PRODUCT_ID)
+        .join(BRAND, PRODUCT.BRAND_ID == BRAND.BRAND_ID)
+        .join(CLIENT, ORDER.CLIENT_ID == CLIENT.CLIENT_ID)
+        .outerjoin(CLIENT_COST, CLIENT_COST.CLIENT_ID == CLIENT.CLIENT_ID)
+        .filter(*base_filters)
+        .group_by(ORDER.ORDER_NR, ORDER.Order_date, ORDER.Paid_price)
+        .order_by(ORDER.Order_date.asc())
+    )
+
+    order_rows = per_order_query.all()
+
+    # -------------------------
+    # DATA VOOR TEMPLATE
+    # -------------------------
+    sum_margins = 0.0
+    orders_for_view = []
+
+    for r in order_rows:
+        margin_value = float(r.order_margin or 0.0)
+        revenue_value = float(r.revenue or 0.0)
+        sum_margins += margin_value
+
+        date_str = ""
+        if r.order_date:
+            date_str = r.order_date.strftime("%Y-%m-%d")
+
+        orders_for_view.append({
+            "order_nr": r.order_nr,
+            "order_date": date_str,
+            "revenue": round(revenue_value, 2),
+            "order_margin": round(margin_value, 2),
+        })
+
+    if orders_per_client_const:
+        avg_margin = sum_margins / orders_per_client_const
+    else:
+        avg_margin = 0.0
+
+    total_margin = round(avg_margin, 2)
+
+    return render_template(
+        "margin.html",
+        total_margin=total_margin,
+        orders=orders_for_view,
+        countries=countries,
+        clients=clients,
+        years=years,
+        selected_year=selected_year,
+        selected_country=selected_country,
+        selected_client_id=selected_client_id,
+    )
 
 # -------------------------
 # CLIENTS LIST
@@ -340,9 +570,7 @@ def forecast_page():
 
     df = pd.DataFrame(results, columns=["month", "revenue"]).dropna()
 
-    # ----------------------
-    # 2️⃣ Outlier Correctie (T1)
-    # ----------------------
+    # Outlier correctie
     df["log_rev"] = np.log(df["revenue"] + 1)
 
     mean = df["log_rev"].mean()
@@ -357,9 +585,7 @@ def forecast_page():
 
     df["revenue"] = df["rev_corrected"]
 
-    # ----------------------
-    # 3️⃣ Seasonal decomposition via CMA
-    # ----------------------
+    # Seasonal decomposition via CMA
     df["rev_centered"] = df["revenue"].rolling(window=12, center=True).mean()
     df["seasonal_ratio"] = df["revenue"] / df["rev_centered"]
     df["month_num"] = df["month"].str[-2:].astype(int)
@@ -370,7 +596,6 @@ def forecast_page():
     df["seasonal_factor"] = df["month_num"].map(seasonal_factors)
     df["trend"] = df["revenue"] / df["seasonal_factor"]
 
-    # Trend extrapolatie
     valid_trend = df["trend"].dropna()
     t = np.arange(len(valid_trend))
     slope, intercept = np.polyfit(t, valid_trend, 1)
@@ -383,7 +608,6 @@ def forecast_page():
         for i in range(future_months)
     ]
 
-    # Future maanden genereren
     last_month_dt = pd.to_datetime(df["month"].iloc[-1] + "-01")
 
     forecast_months = [
@@ -397,22 +621,9 @@ def forecast_page():
         sf = float(seasonal_factors.loc[m])
         forecast_values.append(forecast_trend[i] * sf)
 
-    # ----------------------
-    # 4️⃣ GRAFIEK-ALIGN FIX
-    # ----------------------
-
-    # Historische labels + forecast labels samen
     labels = list(df["month"]) + forecast_months
-
-    # History data krijgt nulls voor forecast periode
     history_data = list(df["revenue"]) + [None] * len(forecast_values)
-
-    # Forecast data krijgt nulls voor historische periode
     forecast_data = [None] * len(df) + list(forecast_values)
-
-    # ----------------------
-    # 5️⃣ Tabellen
-    # ----------------------
 
     outlier_table = [
         {
@@ -443,21 +654,9 @@ def forecast_page():
     )
 
 
-
-
 # -------------------------
 # COSTS PAGE
 # -------------------------
 @main.route("/costs")
 def costs():
     return render_template("costs.html")
-
-
-
-
-
-
-
-
-
-

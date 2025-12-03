@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Margin - LiQ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
+    <style>
+        .margin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+        .margin-table th,
+        .margin-table td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: left;
+        }
+        .margin-table th {
+            font-weight: bold;
+        }
+        .margin-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .margin-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        .filter-form {
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+            justify-content: center;
+        }
+        .filter-form label {
+            font-weight: 500;
+        }
+        .filter-form select,
+        .filter-form button {
+            padding: 0.35rem 0.6rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="home-container">
+    <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+
+    <h1>
+        Marge per klant
+        {% if selected_year %}
+            ({{ selected_year }})
+        {% endif %}
+    </h1>
+
+    <p class="subtitle">
+        De nettomarge per klant is het gemiddelde van de nettomarges per order,
+        waarbij per order de Paid_price wordt verminderd met productie-, transport-,
+        stockage- en licentiekosten.
+    </p>
+
+    <!-- FILTERS -->
+    <form method="get"
+          action="{{ url_for('main.margin_page') }}"
+          class="filter-form"
+          id="margin-form">
+
+        <!-- Jaar -->
+        <label for="year">Jaar:</label>
+        <select name="year" id="year"
+                onchange="document.getElementById('margin-form').submit();">
+            <option value="">-- Kies een jaar --</option>
+            {% for y in years %}
+                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>
+                    {{ y }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <!-- Land -->
+        <label for="country">Land:</label>
+        <select name="country" id="country"
+                onchange="document.getElementById('margin-form').submit();">
+            <option value="">Alle landen</option>
+            {% for country in countries %}
+                <option value="{{ country }}" {% if selected_country == country %}selected{% endif %}>
+                    {{ country }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <!-- Klant -->
+        <label for="client_id">Klant:</label>
+        <select name="client_id" id="client_id" required>
+            <option value="">-- Kies een klant --</option>
+            {% for c in clients %}
+                <option value="{{ c.CLIENT_ID }}" {% if selected_client_id == c.CLIENT_ID %}selected{% endif %}>
+                    {{ c.Name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Toon marge</button>
+    </form>
+
+    <div class="margin-result">
+        {% if total_margin is not none and selected_year and selected_client_id %}
+            <h2>Gemiddelde nettomarge per order ({{ selected_year }})</h2>
+            <p class="subtitle">
+                Dit is de gemiddelde nettomarge van alle orders van de geselecteerde klant
+                in {{ selected_year }}, op basis van Paid_price minus productie-, transport-,
+                stockage- en licentiekosten.
+            </p>
+            <p class="margin-value">
+                {{ total_margin }} €
+            </p>
+
+            {% if orders %}
+                <h3>Overzicht orders in {{ selected_year }}</h3>
+                <table class="margin-table">
+                    <thead>
+                    <tr>
+                        <th>Order nr.</th>
+                        <th>Datum</th>
+                        <th>Omzet (Paid_price)</th>
+                        <th>Nettomarge</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for o in orders %}
+                        <tr>
+                            <td>{{ o.order_nr }}</td>
+                            <td>{{ o.order_date }}</td>
+                            <td>{{ o.revenue }} €</td>
+                            <td>{{ o.order_margin }} €</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="subtitle">Deze klant heeft geen orders in {{ selected_year }}.</p>
+            {% endif %}
+
+        {% else %}
+            <p class="subtitle">
+                Selecteer eerst een jaar en een klant om de marge en orders te bekijken.
+            </p>
+        {% endif %}
+    </div>
+
+    <a href="{{ url_for('main.home_page') }}"><button>Terug naar home</button></a>
+</div>
+
+</body>
+</html>
