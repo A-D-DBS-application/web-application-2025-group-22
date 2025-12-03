@@ -23,6 +23,7 @@ main = Blueprint("main", __name__)
 # -------------------------
 @main.route("/")
 def home():
+
     return render_template("login.html")
 
 
@@ -90,6 +91,20 @@ def register():
 
 @main.route("/home")
 def home_page():
+    client_count = CLIENT.query.count()
+    product_count = PRODUCT.query.count()
+    order_count = ORDER.query.count()
+    brand_count = BRAND.query.count()
+    supplier_count = SUPPLIER.query.count()
+
+    return render_template(
+        "home.html",
+        client_count=client_count,
+        product_count=product_count,
+        order_count=order_count,
+        brand_count=brand_count,
+        supplier_count=supplier_count,
+    )
     return render_template("home.html")
 
 
@@ -660,3 +675,212 @@ def forecast_page():
 @main.route("/costs")
 def costs():
     return render_template("costs.html")
+
+
+
+# -------------------------
+# ADD RECORDS - OVERZICHT
+# -------------------------
+@main.route("/add-records", methods=["GET"])
+def add_records_page():
+    """
+    Pagina om nieuwe records toe te voegen aan de belangrijkste tabellen:
+    - CLIENT
+    - BRAND
+    - PRODUCT
+    - ORDER (alleen als de client bestaat)
+    """
+
+    clients = CLIENT.query.order_by(CLIENT.Name).all()
+    suppliers = SUPPLIER.query.order_by(SUPPLIER.Name).all()
+    brands = BRAND.query.order_by(BRAND.Name).all()
+    products = PRODUCT.query.order_by(PRODUCT.Name).all()
+
+    return render_template(
+        "add_records.html",
+        clients=clients,
+        suppliers=suppliers,
+        brands=brands,
+        products=products,
+    )
+
+
+# -------------------------
+# ADD CLIENT
+# -------------------------
+@main.route("/add-record/client", methods=["POST"])
+def add_record_client():
+    name = request.form.get("name")
+    country = request.form.get("country")
+    postal = request.form.get("postal_code")
+    city = request.form.get("city")
+    street = request.form.get("street")
+    house = request.form.get("house_number")
+    btw_vat = request.form.get("btw_vat")
+    email = request.form.get("email")
+
+    if not name:
+        return redirect(url_for("main.add_records_page"))
+
+    new_client = CLIENT(
+        Name=name,
+        Country=country,
+        Postal_code=postal,
+        City=city,
+        Street=street,
+        House_number=house,
+        BTW_VAT=btw_vat,
+        Email=email,
+    )
+    db.session.add(new_client)
+    db.session.commit()
+
+    return redirect(url_for("main.add_records_page"))
+
+
+# -------------------------
+# ADD BRAND
+# -------------------------
+@main.route("/add-record/brand", methods=["POST"])
+def add_record_brand():
+    name = request.form.get("name")
+    license_fee = request.form.get("license_fee")
+    supplier_id = request.form.get("supplier_id", type=int)
+
+    if not name or not supplier_id:
+        return redirect(url_for("main.add_records_page"))
+
+    supplier = SUPPLIER.query.get(supplier_id)
+    if not supplier:
+        return redirect(url_for("main.add_records_page"))
+
+    try:
+        license_fee_value = float(license_fee) if license_fee else 0.0
+    except ValueError:
+        license_fee_value = 0.0
+
+    new_brand = BRAND(
+        Name=name,
+        License_fee_procent=license_fee_value,
+        SUPPLIER_ID=supplier_id,
+    )
+    db.session.add(new_brand)
+    db.session.commit()
+
+    return redirect(url_for("main.add_records_page"))
+
+
+# -------------------------
+# ADD PRODUCT
+# -------------------------
+@main.route("/add-record/product", methods=["POST"])
+def add_record_product():
+    name = request.form.get("name")
+    brand_id = request.form.get("brand_id", type=int)
+    supplier_id = request.form.get("supplier_id", type=int)
+    sell_price = request.form.get("sell_price")
+    currency = request.form.get("currency")
+
+    if not name or not brand_id or not supplier_id:
+        return redirect(url_for("main.add_records_page"))
+
+    try:
+        sell_price_value = float(sell_price) if sell_price else 0.0
+    except ValueError:
+        sell_price_value = 0.0
+
+    if not BRAND.query.get(brand_id) or not SUPPLIER.query.get(supplier_id):
+        return redirect(url_for("main.add_records_page"))
+
+    new_product = PRODUCT(
+        Name=name,
+        BRAND_ID=brand_id,
+        SUPPLIER_ID=supplier_id,
+        Sell_price_per_product=sell_price_value,
+        Currency=currency or "EUR",
+    )
+    db.session.add(new_product)
+    db.session.commit()
+
+    return redirect(url_for("main.add_records_page"))
+
+
+# -------------------------
+# HELPERS: ORDER_NR GENEREREN
+# -------------------------
+def generate_next_order_nr(order_date: date) -> str:
+    """
+    ORDER_NR-formaat: 'YYYY-N'.
+    We zoeken alle orders die starten met 'YYYY-' en nemen de hoogste N, +1.
+    """
+    year = order_date.year
+    prefix = f"{year}-"
+
+    existing_orders = ORDER.query.filter(ORDER.ORDER_NR.like(f"{prefix}%")).all()
+
+    max_n = 0
+    for o in existing_orders:
+        try:
+            part = o.ORDER_NR.split("-")[1]
+            n = int(part)
+            if n > max_n:
+                max_n = n
+        except (IndexError, ValueError):
+            continue
+
+    next_n = max_n + 1
+    return f"{year}-{next_n}"
+
+
+# -------------------------
+# ADD ORDER (ENKEL ALS CLIENT BESTAAT)
+# -------------------------
+@main.route("/add-record/order", methods=["POST"])
+def add_record_order():
+    client_id = request.form.get("client_id", type=int)
+    supplier_id = request.form.get("supplier_id", type=int)
+    order_date_str = request.form.get("order_date")
+    status = request.form.get("status") or "Deliverd"
+    quantity = request.form.get("quantity", type=int)
+    paid_price = request.form.get("paid_price")
+
+    if not client_id or not supplier_id or not order_date_str:
+        return redirect(url_for("main.add_records_page"))
+
+    # Client moet bestaan
+    client = CLIENT.query.get(client_id)
+    if not client:
+        return redirect(url_for("main.add_records_page"))
+
+    supplier = SUPPLIER.query.get(supplier_id)
+    if not supplier:
+        return redirect(url_for("main.add_records_page"))
+
+    try:
+        order_date = datetime.strptime(order_date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return redirect(url_for("main.add_records_page"))
+
+    try:
+        paid_price_value = float(paid_price) if paid_price else 0.0
+    except ValueError:
+        paid_price_value = 0.0
+
+    # Automatisch volgend ORDER_NR
+    new_order_nr = generate_next_order_nr(order_date)
+
+    new_order = ORDER(
+        ORDER_NR=new_order_nr,
+        CLIENT_ID=client_id,
+        SUPPLIER_ID=supplier_id,
+        Order_date=order_date,
+        Status=status,
+        Quantity=quantity or 0,
+        Paid_price=paid_price_value,
+    )
+
+    db.session.add(new_order)
+    db.session.commit()
+
+    return redirect(url_for("main.add_records_page"))
+

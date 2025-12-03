@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Add records - LiQ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
+    <style>
+        /* Maak de pagina iets compacter dan de standaard home-styling */
+        .home-container {
+            max-width: 1100px;
+            margin: 1rem auto 2rem auto; /* boven kleiner */
+            padding: 1.5rem 2rem;
+        }
+
+        .home-container h1 {
+            margin-bottom: 0.3rem;
+        }
+
+        .home-container .subtitle {
+            margin-top: 0.2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .section {
+            margin-top: 1.2rem;
+            margin-bottom: 1.2rem;
+            padding: 1rem 1.2rem;
+            border-radius: 8px;
+            background: #f9f4ef;
+        }
+        .section h2 {
+            margin-bottom: 0.4rem;
+        }
+        .section small {
+            color: #555;
+        }
+
+        form.record-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 0.6rem 0.9rem;
+            margin-top: 0.6rem;
+        }
+        form.record-form input,
+        form.record-form select {
+            padding: 0.3rem 0.45rem;
+        }
+        form.record-form button {
+            margin-top: 0.3rem;
+            padding: 0.35rem 0.7rem;
+            justify-self: flex-start;
+        }
+        .field-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 0.05rem;
+        }
+        .field-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            margin-bottom: 0.4rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="home-container">
+    <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+
+    <h1>Records toevoegen</h1>
+    <p class="subtitle">
+        Voeg hier nieuwe klanten, merken, producten en orders toe. Nieuwe records krijgen automatisch een correcte ID en ORDER_NR.
+    </p>
+
+    <!-- ================= CLIENT ================= -->
+    <div class="section">
+        <h2>Client toevoegen</h2>
+        <small>CLIENT: Name, Country, adresgegevens, BTW/VAT, e-mail</small>
+
+        <form class="record-form" method="post" action="{{ url_for('main.add_record_client') }}">
+            <div class="field-group">
+                <label class="field-label">Naam *</label>
+                <input type="text" name="name" required>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Land</label>
+                <input type="text" name="country">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Postcode</label>
+                <input type="text" name="postal_code">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Stad</label>
+                <input type="text" name="city">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Straat</label>
+                <input type="text" name="street">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Huisnummer</label>
+                <input type="text" name="house_number">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">BTW/VAT</label>
+                <input type="text" name="btw_vat">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">E-mail</label>
+                <input type="email" name="email">
+            </div>
+
+            <button type="submit">Client toevoegen</button>
+        </form>
+    </div>
+
+    <!-- ================= BRAND ================= -->
+    <div class="section">
+        <h2>Brand toevoegen</h2>
+        <small>BRAND: Name, License_fee_procent, SUPPLIER_ID</small>
+
+        <form class="record-form" method="post" action="{{ url_for('main.add_record_brand') }}">
+            <div class="field-group">
+                <label class="field-label">Naam *</label>
+                <input type="text" name="name" required>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">License fee (%)</label>
+                <input type="number" step="0.01" name="license_fee">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Supplier *</label>
+                <select name="supplier_id" required>
+                    <option value="">-- Kies supplier --</option>
+                    {% for s in suppliers %}
+                        <option value="{{ s.SUPPLIER_ID }}">{{ s.Name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit">Brand toevoegen</button>
+        </form>
+    </div>
+
+    <!-- ================= PRODUCT ================= -->
+    <div class="section">
+        <h2>Product toevoegen</h2>
+        <small>PRODUCT: Name, BRAND_ID, SUPPLIER_ID, Sell_price_per_product, Currency</small>
+
+        <form class="record-form" method="post" action="{{ url_for('main.add_record_product') }}">
+            <div class="field-group">
+                <label class="field-label">Naam *</label>
+                <input type="text" name="name" required>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Brand *</label>
+                <select name="brand_id" required>
+                    <option value="">-- Kies brand --</option>
+                    {% for b in brands %}
+                        <option value="{{ b.BRAND_ID }}">{{ b.Name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Supplier *</label>
+                <select name="supplier_id" required>
+                    <option value="">-- Kies supplier --</option>
+                    {% for s in suppliers %}
+                        <option value="{{ s.SUPPLIER_ID }}">{{ s.Name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Sell price per product</label>
+                <input type="number" step="0.01" name="sell_price">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Currency</label>
+                <input type="text" name="currency" value="EUR">
+            </div>
+
+            <button type="submit">Product toevoegen</button>
+        </form>
+    </div>
+
+    <!-- ================= ORDER ================= -->
+    <div class="section">
+        <h2>Order toevoegen</h2>
+        <small>
+            ORDER: ORDER_NR wordt automatisch gegenereerd op basis van het jaar (YYYY-N).
+            Een order kan alleen worden aangemaakt voor een bestaande client.
+        </small>
+
+        <form class="record-form" method="post" action="{{ url_for('main.add_record_order') }}">
+            <div class="field-group">
+                <label class="field-label">Client *</label>
+                <select name="client_id" required>
+                    <option value="">-- Kies client --</option>
+                    {% for c in clients %}
+                        <option value="{{ c.CLIENT_ID }}">{{ c.Name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Supplier *</label>
+                <select name="supplier_id" required>
+                    <option value="">-- Kies supplier --</option>
+                    {% for s in suppliers %}
+                        <option value="{{ s.SUPPLIER_ID }}">{{ s.Name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Orderdatum *</label>
+                <input type="date" name="order_date" required>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Status</label>
+                <input type="text" name="status" value="Deliverd">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Totale hoeveelheid (Quantity)</label>
+                <input type="number" name="quantity" min="0">
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Paid_price (totaal)</label>
+                <input type="number" step="0.01" name="paid_price">
+            </div>
+
+            <button type="submit">Order toevoegen</button>
+        </form>
+    </div>
+
+    <a href="{{ url_for('main.home_page') }}"><button>Terug naar home</button></a>
+</div>
+
+</body>
+</html>

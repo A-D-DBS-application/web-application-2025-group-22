@@ -4,6 +4,26 @@
     <meta charset="UTF-8">
     <title>Home - LiQ</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
+    <style>
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: #f2e4d4;
+            padding: 0.8rem 1.3rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+            min-width: 150px;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
@@ -12,19 +32,28 @@
     <div class="home-container">
         <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
 
-        <h1>Welkom op de homepagina! </h1>
+        <h1>Welkom op de homepagina!</h1>
         <p class="subtitle">Kies een optie om verder te gaan.</p>
 
-        <div class="button-group">
-            <a href="{{ url_for('main.clients') }}"><button>Clients</button></a>
-            <a href="{{ url_for('main.webusers') }}"><button>Webusers</button></a>
-            <a href="{{ url_for('main.suppliers') }}"><button>Suppliers</button></a>
-            <a href="{{ url_for('main.products') }}"><button>Products</button></a>
-            <a href="{{ url_for('main.orders') }}"><button>Orders</button></a>
-            <a href="{{ url_for('main.costs') }}"><button>Costs</button></a>
+        <!-- 📊 STATISTIEKEN -->
+        <div class="stats-container">
+            <div class="stat-box">Clients: <strong>{{ client_count }}</strong></div>
+            <div class="stat-box">Orders: <strong>{{ order_count }}</strong></div>
+            <div class="stat-box">Products: <strong>{{ product_count }}</strong></div>
+            <div class="stat-box">Brands: <strong>{{ brand_count }}</strong></div>
+            <div class="stat-box">Suppliers: <strong>{{ supplier_count }}</strong></div>
+        </div>
 
-            <!-- Nieuwe knop -->
+        <!-- KNOPPEN -->
+        <div class="button-group">
+            <!-- MARGE KNOP -->
             <a href="{{ url_for('main.margin_page') }}"><button>Margin & Filters</button></a>
+
+            <!-- FORECAST KNOP -->
+            <a href="{{ url_for('main.forecast_page') }}"><button>Forecast algoritme</button></a>
+
+            <!-- ADD RECORDS -->
+            <a href="{{ url_for('main.add_records_page') }}"><button>Add records</button></a>
         </div>
     </div>
 
