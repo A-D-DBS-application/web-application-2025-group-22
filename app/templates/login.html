@@ -3,7 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <title>Login / Aanmelden</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style_login.css') }}">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f1e7d2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Perfect gecentreerd logo */
+        .top-logo {
+            margin-top: 50px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Fade effect rond logo */
+        .top-logo img {
+            width: 260px; /* GROTER GEMAAKT */
+            height: auto;
+
+            /* zachte vervaging aan de randen zodat het vierkant verdwijnt */
+            mask-image: radial-gradient(circle, black 60%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle, black 60%, transparent 100%);
+        }
+
+        .login-container {
+            width: 350px;
+            background: white;
+            padding: 30px;
+            margin-top: 10px;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            background-color: #a16b42;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .login-container button:hover {
+            background-color: #8e5f3a;
+        }
+    </style>
+
     <script>
         function setAction(actionType) {
             document.getElementById("action-field").value = actionType;
@@ -12,15 +81,22 @@
             document.getElementById("action-field").value = 'login';
         });
     </script>
+
 </head>
 
 <body>
+
+    <div class="top-logo">
+        <img src="{{ url_for('static', filename='DataSight.png') }}" alt="Logo">
+    </div>
+
     <div class="login-container">
 
         <h1>Welkom</h1>
 
         <form id="login-form" method="POST" action="{{ url_for('main.login') }}">
-            <input type="hidden" id="action-field" name="action" value="">
+            <input type="hidden" id="action-field" name="action">
+
             <input type="text" id="name" name="name" placeholder="Naam" required>
 
             <button type="submit" onclick="setAction('login')">Inloggen</button>
@@ -32,5 +108,6 @@
         {% endif %}
 
     </div>
+
 </body>
 </html>

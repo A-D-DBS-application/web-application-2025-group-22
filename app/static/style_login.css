@@ -1,3 +1,16 @@
+.login-logo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-logo img {
+    width: 180px; /* Pas aan zoals je wilt */
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+
 /* NEUTRALE LOGIN PAGINA — GEEN LIQ STYLING */
 
 body {
