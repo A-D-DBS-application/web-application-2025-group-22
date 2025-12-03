@@ -16,12 +16,15 @@
         <p class="subtitle">Kies een optie om verder te gaan.</p>
 
         <div class="button-group">
-            <a href="/clients"><button>Clients</button></a>
-            <a href="/webusers"><button>Webusers</button></a>
-            <a href="/suppliers"><button>Suppliers</button></a>
-            <a href="/products"><button>Products</button></a>
-            <a href="/orders"><button>Orders</button></a>
-            <a href="/costs"><button>Costs</button></a>
+            <a href="{{ url_for('main.clients') }}"><button>Clients</button></a>
+            <a href="{{ url_for('main.webusers') }}"><button>Webusers</button></a>
+            <a href="{{ url_for('main.suppliers') }}"><button>Suppliers</button></a>
+            <a href="{{ url_for('main.products') }}"><button>Products</button></a>
+            <a href="{{ url_for('main.orders') }}"><button>Orders</button></a>
+            <a href="{{ url_for('main.costs') }}"><button>Costs</button></a>
+
+            <!-- Nieuwe knop -->
+            <a href="{{ url_for('main.margin_page') }}"><button>Margin & Filters</button></a>
         </div>
     </div>
 
