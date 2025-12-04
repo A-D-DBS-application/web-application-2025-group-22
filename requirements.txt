@@ -1,6 +1,6 @@
 Flask
 Flask-SQLAlchemy
+SQLAlchemy
+psycopg2-binary
 gunicorn
-requests
-supabase
 python-dotenv
