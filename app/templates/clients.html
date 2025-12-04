@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Clients Lijst</title>
+    <title>Clients List</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
 
     <style>
@@ -99,22 +99,22 @@
         <div class="top-buttons">
             <button class="compact-button" onclick="window.location.href='/home'">Home</button>
             <button class="compact-button" onclick="toggleFilter()">Filter</button>
-            <button class="compact-button" onclick="toggleSort()">Sorteer</button>
+            <button class="compact-button" onclick="toggleSort()">Sort</button>
         </div>
     </div>
 
-    <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+    <button class="back-button" onclick="window.location.href='/home'">Back</button>
 
     <!-- FILTER PANEL -->
     <div id="filter-panel" class="popup-panel">
         <form method="get">
 
-            <label>Naam:</label>
+            <label>Name:</label>
             <input type="text" name="name" value="{{ request_args.get('name','') }}">
 
-            <label>Land:</label>
+            <label>Country:</label>
             <select name="country">
-                <option value="">-- Alle landen --</option>
+                <option value="">-- All countries --</option>
                 {% for country in countries %}
                     <option value="{{ country|lower }}"
                         {% if request_args.get('country','') == country|lower %} selected {% endif %}>
@@ -145,13 +145,13 @@
             <input type="hidden" name="min_rev" value="{{ request_args.get('min_rev','') }}">
             <input type="hidden" name="max_rev" value="{{ request_args.get('max_rev','') }}">
 
-            <label>Sorteer op:</label>
+            <label>Sort by:</label>
             <select name="sort">
-                <option value="default">Standaard</option>
-                <option value="name-asc" {% if request_args.get('sort') == 'name-asc' %}selected{% endif %}>Naam A → Z</option>
-                <option value="name-desc" {% if request_args.get('sort') == 'name-desc' %}selected{% endif %}>Naam Z → A</option>
-                <option value="rev-asc" {% if request_args.get('sort') == 'rev-asc' %}selected{% endif %}>Revenue klein → groot</option>
-                <option value="rev-desc" {% if request_args.get('sort') == 'rev-desc' %}selected{% endif %}>Revenue groot → klein</option>
+                <option value="default">Default</option>
+                <option value="name-asc">Name A → Z</option>
+                <option value="name-desc">Name Z → A</option>
+                <option value="rev-asc">Revenue low → high</option>
+                <option value="rev-desc">Revenue high → low</option>
             </select>
 
             <div style="display:flex; justify-content:space-between; margin-top:10px;">
