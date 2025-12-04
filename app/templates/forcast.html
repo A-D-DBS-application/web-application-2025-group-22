@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Forecast - LiQ</title>
+
+    <!-- Chart.js for the chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Reuse the home styling for the container -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
+
+    <style>
+        .info-box {
+            background: #f7e3cc;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin: 15px 0 25px 0;
+            text-align: left;
+        }
+
+        .forecast-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+        }
+
+        .forecast-table th,
+        .forecast-table td {
+            border-bottom: 1px solid #e0d0bd;
+            padding: 8px 10px;
+            text-align: center;
+        }
+
+        .forecast-table th {
+            background: #f2e4d4;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+<div class="home-container">
+
+    <img src="{{ url_for('static', filename='logo.svg') }}" class="logo">
+
+    <h1>Revenue Forecast</h1>
+
+    <div class="info-box">
+        <strong>Method:</strong> Simple Exponential Smoothing (SES)<br>
+        <strong>Alpha used:</strong> {{ alpha_used }}<br><br>
+        {{ method_info }}
+    </div>
+
+    {% if labels %}
+        <!-- GRAFIEK -->
+        <canvas id="forecastChart" style="width:100%; max-height:350px;"></canvas>
+
+        <script>
+            // prettier-ignore
+            const labels = JSON.parse(`{{ labels | tojson | safe }}`);
+
+            // prettier-ignore
+            const historyData = JSON.parse(`{{ history_data | tojson | safe }}`);
+
+            // prettier-ignore
+            const forecastData = JSON.parse(`{{ forecast_data | tojson | safe }}`);
+
+    const ctx = document.getElementById('forecastChart');
+
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Actual revenue',
+                            data: historyData,
+                            borderColor: 'rgba(120, 60, 30, 1)',
+                            backgroundColor: 'rgba(120, 60, 30, 0.2)',
+                            tension: 0.3,
+                            spanGaps: true
+                        },
+                            {
+                            label: 'Forecast (SES)',
+                            data: forecastData,
+                            borderColor: 'rgba(210, 120, 60, 1)',
+                            borderDash: [5, 5],
+                            backgroundColor: 'rgba(210, 120, 60, 0.2)',
+                            tension: 0.3,
+                            spanGaps: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        </script>
+
+        <h2 style="margin-top:35px;">Forecast Tabel</h2>
+        <h2 style="margin-top:35px;">Forecast table</h2>
+
+        <table class="forecast-table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Actual revenue</th>
+                    <th>Forecast</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in table_rows %}
+                <tr>
+                    <td>{{ row.month }}</td>
+                    <td>{{ row.historical }}</td>
+                    <td>
+                        {% if row.forecast is not none %}
+                            {{ row.forecast }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No data available to show a forecast yet.</p>
+    {% endif %}
+
+    <br>
+    <button class="back-button" onclick="window.location.href='/home'">Back</button>
+
+</div>
+</body>
+</html>

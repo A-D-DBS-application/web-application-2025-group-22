@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login / Aanmelden</title>
+    <title>Login / Sign up</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_login.css') }}">
     <script>
         function setAction(actionType) {
@@ -17,14 +17,14 @@
 <body>
     <div class="login-container">
 
-        <h1>Welkom</h1>
+        <h1>Welcome</h1>
 
         <form id="login-form" method="POST" action="{{ url_for('main.login') }}">
             <input type="hidden" id="action-field" name="action" value="">
-            <input type="text" id="name" name="name" placeholder="Naam" required>
+            <input type="text" id="name" name="name" placeholder="Name" required>
 
-            <button type="submit" onclick="setAction('login')">Inloggen</button>
-            <button type="submit" onclick="setAction('signup')">Aanmelden</button>
+            <button type="submit" onclick="setAction('login')">Log in</button>
+            <button type="submit" onclick="setAction('signup')">Sign up</button>
         </form>
 
         {% if message %}
