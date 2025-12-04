@@ -41,6 +41,13 @@ body::before {
     margin-bottom: 10px;
 }
 
+.logo-link {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+}
+
 /* Titel */
 h1 {
     color: #7a3e1e;

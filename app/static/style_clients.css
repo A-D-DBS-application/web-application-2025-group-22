@@ -37,6 +37,12 @@ body {
     width: 95px;
 }
 
+.logo-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
 .page-title h1 {
     font-size: 38px;
     margin: 0;

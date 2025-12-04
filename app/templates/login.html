@@ -16,7 +16,9 @@
 
 <body>
     <div class="login-container">
-
+        <a href="{{ url_for('main.home_page') }}">
+            <img src="{{ url_for('static', filename='datasight-logo.svg') }}" alt="DataSight logo" class="logo">
+        </a>
         <h1>Welcome</h1>
 
         <form id="login-form" method="POST" action="{{ url_for('main.login') }}">

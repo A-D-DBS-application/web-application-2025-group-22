@@ -20,6 +20,12 @@ body {
     animation: fadeIn 0.6s ease-in-out;
 }
 
+.logo {
+    width: 150px;
+    margin: 0 auto 20px;
+    display: block;
+}
+
 h1 {
     color: #6e3c1b;
     margin-bottom: 25px;

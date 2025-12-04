@@ -46,6 +46,13 @@ body {
     margin-bottom: 10px;
 }
 
+.logo-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
 .title {
     font-size: 34px;
     margin: 0;
