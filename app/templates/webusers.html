@@ -12,7 +12,7 @@
 
         <div class="header-block">
             <img src="{{ url_for('static', filename='logo.svg') }}" class="logo">
-            <h1 class="title">Webusers </h1>
+            <h1 class="title">Webusers</h1>
         </div>
 
         <div class="table-wrapper">
@@ -43,7 +43,6 @@
 
                         <td>{{ user.Email }}</td>
 
-                        <!-- Nieuwe kolom -->
                         <td>
                             {% if user.Last_seen %}
                                 {{ user.Last_seen.strftime('%d-%m-%Y %H:%M') }}

@@ -4,32 +4,11 @@
     <meta charset="UTF-8">
     <title>Home - LiQ</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
-    <style>
-        .stats-container {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 2rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .stat-box {
-            background: #f2e4d4;
-            padding: 0.8rem 1.3rem;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-            min-width: 150px;
-            text-align: center;
-        }
-    </style>
 </head>
 
 <body>
-
-    <!-- CENTRALE CONTAINER -->
     <div class="home-container">
+        
         <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
 
         <h1>Welkom op de homepagina!</h1>
@@ -37,25 +16,49 @@
 
         <!-- 📊 STATISTIEKEN -->
         <div class="stats-container">
-            <div class="stat-box">Clients: <strong>{{ client_count }}</strong></div>
-            <div class="stat-box">Orders: <strong>{{ order_count }}</strong></div>
-            <div class="stat-box">Products: <strong>{{ product_count }}</strong></div>
-            <div class="stat-box">Brands: <strong>{{ brand_count }}</strong></div>
-            <div class="stat-box">Suppliers: <strong>{{ supplier_count }}</strong></div>
+
+            <a class="stat-box" href="{{ url_for('main.clients') }}">
+                Clients: <strong>{{ client_count }}</strong>
+            </a>
+
+            <a class="stat-box" href="{{ url_for('main.orders') }}">
+                Orders: <strong>{{ order_count }}</strong>
+            </a>
+
+            <a class="stat-box" href="{{ url_for('main.products') }}">
+                Products: <strong>{{ product_count }}</strong>
+            </a>
+
+            <!-- 🔄 BRANDS VERWIJDERD – VERVANGT DOOR WEBUSERS -->
+            <a class="stat-box" href="{{ url_for('main.webusers') }}">
+                Webusers: <strong>{{ webuser_count }}</strong>
+            </a>
+
+            <a class="stat-box" href="{{ url_for('main.suppliers') }}">
+                Suppliers: <strong>{{ supplier_count }}</strong>
+            </a>
+
         </div>
 
-        <!-- KNOPPEN -->
+        <!-- 🎛 BUTTONS -->
         <div class="button-group">
-            <!-- MARGE KNOP -->
-            <a href="{{ url_for('main.margin_page') }}"><button>Margin & Filters</button></a>
 
-            <!-- FORECAST KNOP -->
-            <a href="{{ url_for('main.forecast_page') }}"><button>Forecast algoritme</button></a>
+            <a href="{{ url_for('main.margin_page') }}" class="main-btn">
+                Margin & Filters
+            </a>
 
-            <!-- ADD RECORDS -->
-            <a href="{{ url_for('main.add_records_page') }}"><button>Add records</button></a>
+            <a href="{{ url_for('main.forecast_page') }}" class="main-btn">
+                Forecast algoritme
+            </a>
+
+            <a href="{{ url_for('main.add_records_page') }}" class="main-btn">
+                Add records
+            </a>
+
         </div>
-    </div>
 
+    </div>
 </body>
 </html>
+
+

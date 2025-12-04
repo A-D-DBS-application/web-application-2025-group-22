@@ -54,7 +54,47 @@ h1 {
     font-size: 16px;
 }
 
-/* Knoppen */
+/* Animatie */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Klikbare STATISTIEK-VAKKEN --- */
+
+.stats-container {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.stat-box {
+    display: inline-block;
+    padding: 12px 22px;
+    background: #f2e4d4;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    min-width: 150px;
+    text-align: center;
+    color: #6b381f;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+    cursor: pointer;
+    transition: 0.15s ease;
+    position: relative;
+    z-index: 5; /* voorkomt overlappende hitboxes */
+}
+
+.stat-box:hover {
+    background-color: #e6d7c2;
+    transform: scale(1.05);
+}
+
+/* --- KNOPPEN --- */
+
 .button-group {
     display: flex;
     justify-content: center;
@@ -62,31 +102,23 @@ h1 {
     gap: 15px;
 }
 
-.button-group button {
-    padding: 12px 25px;
-    background-color: #a86839;
+.button-group a.main-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #a86b45;
     color: white;
-    border: none;
     border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    min-width: 120px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.2s ease;
 }
 
-.button-group button:hover {
+.button-group a.main-btn:hover {
     background-color: #8c4e28;
     transform: translateY(-2px);
 }
 
-/* Animatie */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* IJsje bovenaan (optioneel) */
+/* Floating ice (optioneel) */
 .floating-ice {
     width: 120px;
     position: absolute;
@@ -94,3 +126,4 @@ h1 {
     left: 50%;
     transform: translateX(-50%);
 }
+

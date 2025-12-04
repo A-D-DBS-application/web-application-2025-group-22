@@ -94,7 +94,7 @@ def home_page():
     client_count = CLIENT.query.count()
     product_count = PRODUCT.query.count()
     order_count = ORDER.query.count()
-    brand_count = BRAND.query.count()
+    webuser_count = WEBUSER.query.count()
     supplier_count = SUPPLIER.query.count()
 
     return render_template(
@@ -102,10 +102,10 @@ def home_page():
         client_count=client_count,
         product_count=product_count,
         order_count=order_count,
-        brand_count=brand_count,
+        webuser_count=webuser_count,
         supplier_count=supplier_count,
     )
-    return render_template("home.html")
+
 
 
 # -------------------------
@@ -349,6 +349,7 @@ def clients():
     max_rev = request.args.get("max_rev", "")
     sort = request.args.get("sort", "default")
 
+    # Basis query
     query = CLIENT.query
 
     if name:
@@ -359,6 +360,7 @@ def clients():
 
     clients = query.all()
 
+    # Dictionary voor totals
     client_totals = {
         c.CLIENT_ID: {
             "total_revenue": 0,
@@ -369,39 +371,80 @@ def clients():
         for c in clients
     }
 
+    client_ids = [c.CLIENT_ID for c in clients]
+
+    # ---------------- REVENUE ----------------
     revenue_rows = (
         db.session.query(
             ORDER.CLIENT_ID,
-            func.sum(ORDER_LINE.Paid_price).label("total_revenue")
+            func.sum(ORDER.Paid_price).label("total_revenue")
         )
-        .join(ORDER_LINE, ORDER.ORDER_NR == ORDER_LINE.ORDER_NR)
-        .filter(ORDER.CLIENT_ID.in_([c.CLIENT_ID for c in clients]))
+        .filter(ORDER.CLIENT_ID.in_(client_ids))
         .group_by(ORDER.CLIENT_ID)
         .all()
     )
+
     for row in revenue_rows:
         client_totals[row.CLIENT_ID]["total_revenue"] = float(row.total_revenue or 0)
 
+    # ---------------- PRODUCTION COST ----------------
     production_rows = (
         db.session.query(
             ORDER.CLIENT_ID,
             func.sum(ORDER_LINE.Quantity * PRODUCT_COST.Production_cost).label("total_production_cost")
         )
-        .join(ORDER_LINE, ORDER.ORDER_NR == ORDER_LINE.ORDER_NR)
-        .join(PRODUCT, PRODUCT.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
-        .join(PRODUCT_COST, PRODUCT_COST.PRODUCT_ID == PRODUCT.PRODUCT_ID)
-        .filter(ORDER.CLIENT_ID.in_([c.CLIENT_ID for c in clients]))
+        .select_from(ORDER_LINE)                                            # FIX
+        .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
+        .join(PRODUCT_COST, PRODUCT_COST.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
+        .filter(ORDER.CLIENT_ID.in_(client_ids))
         .group_by(ORDER.CLIENT_ID)
         .all()
     )
+
     for row in production_rows:
         client_totals[row.CLIENT_ID]["total_production_cost"] = float(row.total_production_cost or 0)
 
+    # ---------------- TRANSPORT COST ----------------
+    transport_rows = (
+        db.session.query(
+            ORDER.CLIENT_ID,
+            func.sum(PRODUCT_COST.Inbound_transport_cost * ORDER_LINE.Quantity).label("total_transport_cost")
+        )
+        .select_from(ORDER_LINE)                                           # FIX
+        .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
+        .join(PRODUCT_COST, PRODUCT_COST.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
+        .filter(ORDER.CLIENT_ID.in_(client_ids))
+        .group_by(ORDER.CLIENT_ID)
+        .all()
+    )
+
+    for row in transport_rows:
+        client_totals[row.CLIENT_ID]["total_transport_cost"] = float(row.total_transport_cost or 0)
+
+    # ---------------- STORAGE COST ----------------
+    storage_rows = (
+        db.session.query(
+            ORDER.CLIENT_ID,
+            func.sum(PRODUCT_COST.Storage_cost * ORDER_LINE.Quantity).label("total_storage_cost")
+        )
+        .select_from(ORDER_LINE)                                          # FIX
+        .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
+        .join(PRODUCT_COST, PRODUCT_COST.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
+        .filter(ORDER.CLIENT_ID.in_(client_ids))
+        .group_by(ORDER.CLIENT_ID)
+        .all()
+    )
+
+    for row in storage_rows:
+        client_totals[row.CLIENT_ID]["total_storage_cost"] = float(row.total_storage_cost or 0)
+
+    # ---------------- FILTEREN ----------------
     if min_rev:
         clients = [c for c in clients if client_totals[c.CLIENT_ID]["total_revenue"] >= float(min_rev)]
     if max_rev:
         clients = [c for c in clients if client_totals[c.CLIENT_ID]["total_revenue"] <= float(max_rev)]
 
+    # ---------------- SORTEREN ----------------
     if sort == "name-asc":
         clients = sorted(clients, key=lambda c: c.Name.lower())
     elif sort == "name-desc":
@@ -420,6 +463,7 @@ def clients():
         countries=countries,
         request_args=request.args
     )
+
 
 
 # -------------------------
@@ -515,23 +559,29 @@ def orders():
     product_id = request.args.get("product_id", type=int)
     client_id = request.args.get("client_id", type=int)
 
+    # Basisselectie
     query = (
         db.session.query(
             ORDER_LINE.ORDER_LINE_NR,
             ORDER_LINE.ORDER_NR,
             ORDER.CLIENT_ID,
+            CLIENT.Name.label("ClientName"),
             SUPPLIER.Name.label("SupplierName"),
             PRODUCT.Name.label("ProductName"),
             ORDER_LINE.Quantity,
             PRODUCT.Sell_price_per_product.label("Unit_price"),
-            ORDER_LINE.Currency,
-            ORDER.Order_date
+            PRODUCT.Currency.label("Currency"),
+            ORDER.Order_date,
+            ORDER.Paid_price.label("OrderPaidPrice")
         )
+        .select_from(ORDER_LINE)
         .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
         .join(PRODUCT, PRODUCT.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
+        .join(CLIENT, CLIENT.CLIENT_ID == ORDER.CLIENT_ID)
         .join(SUPPLIER, SUPPLIER.SUPPLIER_ID == ORDER.SUPPLIER_ID)
     )
 
+    # -------- FILTERS --------
     if min_q is not None:
         query = query.filter(ORDER_LINE.Quantity >= min_q)
 
@@ -544,6 +594,7 @@ def orders():
     if client_id is not None:
         query = query.filter(ORDER.CLIENT_ID == client_id)
 
+    # -------- SORTEREN --------
     if sort == "quantity-asc":
         query = query.order_by(ORDER_LINE.Quantity.asc())
     elif sort == "quantity-desc":
@@ -556,6 +607,8 @@ def orders():
         query = query.order_by(PRODUCT.Sell_price_per_product.asc())
     elif sort == "price-desc":
         query = query.order_by(PRODUCT.Sell_price_per_product.desc())
+    else:
+        query = query.order_by(ORDER_LINE.ORDER_LINE_NR.asc())
 
     rows = query.all()
 
@@ -563,109 +616,81 @@ def orders():
 
 
 # -------------------------
-# FORECAST REVENUE (12 MONTHS, SEASONAL)
+# FORECAST REVENUE (SES — beste voor startups)
 # -------------------------
 @main.route("/forecast")
 def forecast_page():
     from sqlalchemy import func
-    import numpy as np
-    import pandas as pd
 
-    # 1️⃣ Revenue per maand ophalen (som Paid_price)
+    # 1. Revenue per maand ophalen (som van ORDER.Paid_price)
     results = (
         db.session.query(
-            func.to_char(ORDER.Order_date, 'YYYY-MM').label("month"),
-            func.sum(ORDER_LINE.Paid_price).label("revenue")
+            func.to_char(ORDER.Order_date, "YYYY-MM").label("month"),
+            func.sum(ORDER.Paid_price).label("revenue"),
         )
-        .join(ORDER_LINE, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
         .group_by("month")
         .order_by("month")
         .all()
     )
 
-    df = pd.DataFrame(results, columns=["month", "revenue"]).dropna()
+    if not results:
+        return render_template(
+            "forecast.html",
+            labels=[],
+            history_data=[],
+            forecast_data=[],
+            table_rows=[],
+            alpha_used=None,
+            method_info="Geen data beschikbaar om een forecast te maken.",
+        )
 
-    # Outlier correctie
-    df["log_rev"] = np.log(df["revenue"] + 1)
+    # 2. Data omzetten naar Python-lijsten
+    labels = [row.month for row in results]
+    history_data = [float(row.revenue or 0.0) for row in results]
 
-    mean = df["log_rev"].mean()
-    std = df["log_rev"].std()
-    z = (df["log_rev"] - mean) / std
-    threshold = 1.8
+    # 3. Simple Exponential Smoothing (SES) zonder extra libraries
+    alpha = 0.4  # midden in jouw gewenste range 0.3–0.5
 
-    df["log_rev_wins"] = df["log_rev"].clip(mean - threshold * std,
-                                            mean + threshold * std)
-    df["rev_corrected"] = np.exp(df["log_rev_wins"]) - 1
-    df["is_outlier"] = abs(z) > threshold
+    forecast_data = []
+    level = None
 
-    df["revenue"] = df["rev_corrected"]
+    for value in history_data:
+        if level is None:
+            # eerste maand: geen forecast, enkel initialisatie
+            forecast_data.append(None)
+            level = value
+        else:
+            # forecast voor huidige maand = vorige level
+            forecast_data.append(level)
+            # update level met SES-formule
+            level = alpha * value + (1 - alpha) * level
 
-    # Seasonal decomposition via CMA
-    df["rev_centered"] = df["revenue"].rolling(window=12, center=True).mean()
-    df["seasonal_ratio"] = df["revenue"] / df["rev_centered"]
-    df["month_num"] = df["month"].str[-2:].astype(int)
+    # 4. Tabel-rows bouwen
+    table_rows = []
+    for month, actual, fc in zip(labels, history_data, forecast_data):
+        table_rows.append(
+            {
+                "month": month,
+                "historical": round(actual, 2),
+                "forecast": None if fc is None else round(fc, 2),
+            }
+        )
 
-    seasonal_factors = df.groupby("month_num")["seasonal_ratio"].mean()
-    seasonal_factors = seasonal_factors / seasonal_factors.mean()
-
-    df["seasonal_factor"] = df["month_num"].map(seasonal_factors)
-    df["trend"] = df["revenue"] / df["seasonal_factor"]
-
-    valid_trend = df["trend"].dropna()
-    t = np.arange(len(valid_trend))
-    slope, intercept = np.polyfit(t, valid_trend, 1)
-
-    future_months = 12
-    last_index = len(df) - 1
-
-    forecast_trend = [
-        intercept + slope * (last_index + i + 1)
-        for i in range(future_months)
-    ]
-
-    last_month_dt = pd.to_datetime(df["month"].iloc[-1] + "-01")
-
-    forecast_months = [
-        (last_month_dt + pd.DateOffset(months=i + 1)).strftime("%Y-%m")
-        for i in range(future_months)
-    ]
-
-    forecast_values = []
-    for i, fm in enumerate(forecast_months):
-        m = int(fm[-2:])
-        sf = float(seasonal_factors.loc[m])
-        forecast_values.append(forecast_trend[i] * sf)
-
-    labels = list(df["month"]) + forecast_months
-    history_data = list(df["revenue"]) + [None] * len(forecast_values)
-    forecast_data = [None] * len(df) + list(forecast_values)
-
-    outlier_table = [
-        {
-            "period": row.month,
-            "original": round(float(rev), 2),
-            "corrected": round(float(corr), 2),
-            "outlier": "Ja" if row.is_outlier else "Nee"
-        }
-        for row, rev, corr in zip(df.itertuples(), df["revenue"], df["rev_corrected"])
-    ]
-
-    future_table = [
-        {"period": forecast_months[i], "forecast": round(float(v), 2)}
-        for i, v in enumerate(forecast_values)
-    ]
+    method_info = (
+        "We gebruiken Simple Exponential Smoothing (zonder seasonality) "
+        "omdat de start-up nog geen stabiele seizoenspatronen heeft. "
+        "Een α-waarde rond 0.3–0.5 laat het model snel genoeg reageren "
+        "op veranderende vraag in jonge, onstabiele datasets."
+    )
 
     return render_template(
         "forecast.html",
         labels=labels,
         history_data=history_data,
         forecast_data=forecast_data,
-        seasonal_factors=[
-            {"month": m, "factor": round(float(f), 4)}
-            for m, f in seasonal_factors.items()
-        ],
-        forecast_table=future_table,
-        outlier_table=outlier_table
+        table_rows=table_rows,
+        alpha_used=alpha,
+        method_info=method_info,
     )
 
 
