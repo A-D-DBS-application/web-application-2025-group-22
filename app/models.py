@@ -1,6 +1,4 @@
 from . import db
-from datetime import datetime
-
 
 # ---------------- WEBUSER ----------------
 class WEBUSER(db.Model):
@@ -11,9 +9,6 @@ class WEBUSER(db.Model):
     Name = db.Column(db.String)
     Email = db.Column(db.String)
     Role = db.Column(db.String)
-
-    # Nieuw veld
-    Last_seen = db.Column(db.DateTime, default=None)
 
     supplier = db.relationship("SUPPLIER", backref="webusers")
 
@@ -37,9 +32,6 @@ class CLIENT(db.Model):
     Email = db.Column(db.String)
 
     orders = db.relationship("ORDER", backref="client")
-
-    # één rij met kosten per klant
-    costs = db.relationship("CLIENT_COST", back_populates="client", uselist=False)
 
     def __repr__(self):
         return f"<CLIENT {self.CLIENT_ID} - {self.Name}>"
@@ -76,7 +68,6 @@ class BRAND(db.Model):
 
     BRAND_ID = db.Column(db.Integer, primary_key=True)
     Name = db.Column(db.String)
-    # let op: als dit 8 is voor 8%, moet je in de query /100 doen
     License_fee_procent = db.Column(db.Float)
     SUPPLIER_ID = db.Column(db.Integer, db.ForeignKey('SUPPLIER.SUPPLIER_ID'))
 
@@ -93,13 +84,12 @@ class PRODUCT(db.Model):
     PRODUCT_ID = db.Column(db.Integer, primary_key=True)
     BRAND_ID = db.Column(db.Integer, db.ForeignKey('BRAND.BRAND_ID'))
     Name = db.Column(db.String)
-    Sell_price_per_product = db.Column(db.Float)
+    Sell_price_per_product = db.Column(db.Integer)
     Currency = db.Column(db.String)
     SUPPLIER_ID = db.Column(db.Integer, db.ForeignKey('SUPPLIER.SUPPLIER_ID'))
 
     order_lines = db.relationship("ORDER_LINE", backref="product")
-    # één rij met kosten per product
-    costs = db.relationship("PRODUCT_COST", backref="product", uselist=False)
+    costs = db.relationship("PRODUCT_COST", backref="product")
 
     def __repr__(self):
         return f"<PRODUCT {self.PRODUCT_ID} - {self.Name}>"
@@ -113,9 +103,11 @@ class PRODUCT_COST(db.Model):
     PRODUCT_ID = db.Column(db.Integer, db.ForeignKey('PRODUCT.PRODUCT_ID'))
 
     Production_cost = db.Column(db.Float)
-    Inbound_transport_cost = db.Column(db.Float)      # fabriek -> magazijn
-    Storage_cost = db.Column(db.Float)                # stockage per product
-    
+    Inbound_transport_cost = db.Column(db.Float)
+    Outbound_transport_cost = db.Column(db.Float)
+    Raw_material_transport_cost = db.Column(db.Float)
+    Storage_cost = db.Column(db.Float)
+    Warehousing_picking_cost = db.Column(db.Float)
 
     def __repr__(self):
         return f"<PRODUCT_COST {self.PRODUCT_COST_ID} product={self.PRODUCT_ID}>"
@@ -128,14 +120,8 @@ class ORDER(db.Model):
     ORDER_NR = db.Column(db.String, primary_key=True)
     CLIENT_ID = db.Column(db.Integer, db.ForeignKey('CLIENT.CLIENT_ID'))
     SUPPLIER_ID = db.Column(db.Integer, db.ForeignKey('SUPPLIER.SUPPLIER_ID'))
-    Status = db.Column(db.String)
     Order_date = db.Column(db.Date)
-
-    # totaal aantal stuks in deze bestelling (som ORDER_LINE.Quantity)
-    Quantity = db.Column(db.Integer)
-
-    # totaal betaalde prijs voor de volledige order (zoals in Excel)
-    Paid_price = db.Column(db.Float)
+    Status = db.Column(db.String)
 
     order_lines = db.relationship("ORDER_LINE", backref="order")
 
@@ -148,31 +134,13 @@ class ORDER_LINE(db.Model):
     __tablename__ = 'ORDER_LINE'
 
     ORDER_LINE_NR = db.Column(db.Integer, primary_key=True)
-    ORDER_NR = db.Column(db.String, db.ForeignKey('ORDER.ORDER_NR'))
-    PRODUCT_ID = db.Column(db.Integer, db.ForeignKey('PRODUCT.PRODUCT_ID'))
-
-    # aantal van dit product in deze order
     Quantity = db.Column(db.Integer)
-
-
-    def __repr__(self):
-        return (
-            f"<ORDER_LINE {self.ORDER_LINE_NR} order={self.ORDER_NR} "
-            f"product={self.PRODUCT_ID}>"
-        )
-
-
-# ---------------- CLIENT_COST ----------------
-class CLIENT_COST(db.Model):
-    __tablename__ = 'CLIENT_COST'
-
-    CLIENT_COST_ID = db.Column(db.Integer, primary_key=True)
-    CLIENT_ID = db.Column(db.Integer, db.ForeignKey('CLIENT.CLIENT_ID'))
-
-    # outbound transport magazijn -> klant (gemiddelde per order / klant)
-    Outbound_transport_cost = db.Column(db.Float)
-
-    client = db.relationship("CLIENT", back_populates="costs")
+    Paid_price = db.Column(db.Float)
+    PRODUCT_ID = db.Column(db.Integer, db.ForeignKey('PRODUCT.PRODUCT_ID'))
+    ORDER_NR = db.Column(db.String, db.ForeignKey('ORDER.ORDER_NR'))
+    Currency = db.Column(db.String)
 
     def __repr__(self):
-        return f"<CLIENT_COST {self.CLIENT_COST_ID} client={self.CLIENT_ID}>"
+        return f"<ORDER_LINE {self.ORDER_LINE_NR} order={self.ORDER_NR} product={self.PRODUCT_ID}>"
+
+

@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Suppliers list</title>
+    <title>Suppliers Lijst</title>
 
     <!-- Zelfde styling als clients & orders -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
@@ -14,10 +14,12 @@
 
         <!-- Header met logo + titel -->
         <div class="page-header">
-            <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+            <a href="{{ url_for('main.home_page') }}" class="logo-link">
+                <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+            </a>
 
             <div class="page-title">
-                <h1>Suppliers list</h1>
+                <h1>Suppliers Lijst</h1>
             </div>
 
             <div class="action-group">
