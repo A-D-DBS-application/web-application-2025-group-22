@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Login / Aanmelden</title>
+    <title>Login / Register</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style_login.css') }}">
 
@@ -99,8 +99,8 @@
 
             <input type="text" id="name" name="name" placeholder="Naam" required>
 
-            <button type="submit" onclick="setAction('login')">Inloggen</button>
-            <button type="submit" onclick="setAction('signup')">Aanmelden</button>
+            <button type="submit" onclick="setAction('login')">Login</button>
+            <button type="submit" onclick="setAction('signup')">Registrer</button>
         </form>
 
         {% if message %}
