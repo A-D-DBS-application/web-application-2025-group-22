@@ -118,23 +118,23 @@
             <button class="compact-button" onclick="window.location.href='/home'">Home</button>
             <button class="compact-button" onclick="window.location.href='/forecast'">Forecast</button>
             <button class="compact-button" onclick="toggleFilter()">Filter</button>
-            <button class="compact-button" onclick="toggleSort()">Sorteer</button>
+            <button class="compact-button" onclick="toggleSort()">Sort</button>
             <button class="compact-button" onclick="toggleAdjust()">Adjust</button>
         </div>
     </div>
 
-    <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+    <button class="back-button" onclick="window.location.href='/home'">Back</button>
 
     <!-- FILTER PANEL -->
     <div id="filter-panel" class="popup-panel">
         <form method="get">
 
-            <label>Naam:</label>
+            <label>Name:</label>
             <input type="text" name="name" value="{{ request_args.get('name','') }}">
 
             <label>Land:</label>
             <select name="country">
-                <option value="">-- Alle landen --</option>
+                <option value="">-- All Countries --</option>
                 {% for country in countries %}
                     <option value="{{ country|lower }}"
                         {% if request_args.get('country','') == country|lower %} selected {% endif %}>
@@ -165,13 +165,13 @@
             <input type="hidden" name="min_rev" value="{{ request_args.get('min_rev','') }}">
             <input type="hidden" name="max_rev" value="{{ request_args.get('max_rev','') }}">
 
-            <label>Sorteer op:</label>
+            <label>Sort By:</label>
             <select name="sort">
                 <option value="default">Standaard</option>
-                <option value="name-asc">Naam A → Z</option>
-                <option value="name-desc">Naam Z → A</option>
-                <option value="rev-asc">Revenue klein → groot</option>
-                <option value="rev-desc">Revenue groot → klein</option>
+                <option value="name-asc">Name A → Z</option>
+                <option value="name-desc">Name Z → A</option>
+                <option value="rev-asc">Revenue small → large</option>
+                <option value="rev-desc">Revenue large → small</option>
             </select>
 
             <div style="display:flex; justify-content:space-between; margin-top:10px;">
