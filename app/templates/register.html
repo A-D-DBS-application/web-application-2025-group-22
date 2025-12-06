@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Registreren</title>
+    <title>Register</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
 
@@ -90,7 +90,7 @@
 
     <div class="register-container">
 
-        <h1>Registreren</h1>
+        <h1>Register</h1>
 
         {% if message %}
             <p class="error-message">{{ message }}</p>
@@ -98,23 +98,23 @@
 
         <form action="/register" method="post">
 
-            <label>Gebruikersnaam:</label>
+            <label>Username:</label>
             <input type="text" name="username" required>
 
             <label>Email:</label>
             <input type="email" name="email" required>
 
-            <label>Bedrijf:</label>
+            <label>Company:</label>
             <select name="supplier_id" required>
                 {% for supplier in suppliers %}
                     <option value="{{ supplier.SUPPLIER_ID }}">{{ supplier.Name }}</option>
                 {% endfor %}
             </select>
 
-            <button type="submit">Account aanmaken</button>
+            <button type="submit">Create Account</button>
         </form>
 
-        <a class="login-link" href="/login">Heb je al een account? Log hier in.</a>
+        <a class="login-link" href="/login">Do you already have an account? Log in here.</a>
     </div>
 
 </body>
