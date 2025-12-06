@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Costs Lijst</title>
+    <title>Costs List</title>
 
     <!-- Zelfde stijlvolle layout als Clients / Orders / Products -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
@@ -28,18 +28,18 @@
         </div>
 
         <!-- TABEL -->
-         <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+         <button class="back-button" onclick="window.location.href='/home'">Back</button>
         <div class="table-wrapper">
             <table class="costs-table">
                 <thead>
                     <tr>
-                        <th>FACTUUR_NR</th>
-                        <th>Aantal Stuks</th>
-                        <th>Transportprijs per eenheid</th>
-                        <th>Totale Transportkost</th>
-                        <th>Stockageprijs per eenheid</th>
-                        <th>Totale Stockagekost</th>
-                        <th>Totale Kost</th>
+                        <th>INVOICE_NO</th>
+                        <th>Number of Items</th>
+                        <th>Transport Price per Unit</th>
+                        <th>Total Transport Cost</th>
+                        <th>Storage Price per Unit</th>
+                        <th>Total Storage Cost</th>
+                        <th>Total Cost</th>
                     </tr>
                 </thead>
 

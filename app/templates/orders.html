@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Orders Lijst</title>
+    <title>Orders List</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
     <style>
         .popup {
@@ -36,27 +36,27 @@
             <h1>Orders list</h1>
 
             <div class="action-group">
-                <button id="sortButton" class="action-button">Sorteer</button>
+                <button id="sortButton" class="action-button">Sort</button>
                 <button id="filterButton" class="action-button">Filter</button>
             </div>
         </div>
 
-        <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+        <button class="back-button" onclick="window.location.href='/home'">Back</button>
 
         <!-- SORT POPUP -->
         <div id="sortPopup" class="popup">
-            <h3>Sorteer op:</h3>
+            <h3>Sort By:</h3>
 
-            <button onclick="applySort('date-desc')">Nieuwste eerst</button>
-            <button onclick="applySort('date-asc')">Oudste eerst</button>
+            <button onclick="applySort('date-desc')">Newest First</button>
+            <button onclick="applySort('date-asc')">Oldest First</button>
 
-            <button onclick="applySort('quantity-desc')">Meeste Quantity</button>
-            <button onclick="applySort('quantity-asc')">Minste Quantity</button>
+            <button onclick="applySort('quantity-desc')">Most Quantity</button>
+            <button onclick="applySort('quantity-asc')">Minimum Quantity</button>
 
-            <button onclick="applySort('price-desc')">Duurste eerst</button>
-            <button onclick="applySort('price-asc')">Goedkoopste eerst</button>
+            <button onclick="applySort('price-desc')">Most Expensive First</button>
+            <button onclick="applySort('price-asc')">Cheapest First</button>
 
-            <button onclick="closeSortPopup()">Sluiten</button>
+            <button onclick="closeSortPopup()">Close</button>
         </div>
 
         <!-- FILTER POPUP -->
@@ -76,8 +76,8 @@
                 <label>Client ID:</label>
                 <input type="number" name="client_id">
 
-                <button type="submit">Filter toepassen</button>
-                <button type="button" onclick="closeFilterPopup()">Sluiten</button>
+                <button type="submit">Apply Filter</button>
+                <button type="button" onclick="closeFilterPopup()">Close</button>
             </form>
         </div>
 
