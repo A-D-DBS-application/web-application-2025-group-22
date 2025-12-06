@@ -51,16 +51,16 @@
     <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
 
     <h1>
-        Marge per klant
+        Margin per Client
         {% if selected_year %}
             ({{ selected_year }})
         {% endif %}
     </h1>
 
     <p class="subtitle">
-        De nettomarge per klant is het gemiddelde van de nettomarges per order,
-        waarbij per order de Paid_price wordt verminderd met productie-, transport-,
-        stockage- en licentiekosten.
+        The net margin per customer is the average of the net margins per order,
+        where the Paid_price per order is reduced by production, transport,
+        storage and licence costs.
     </p>
 
     <!-- FILTERS -->
@@ -70,10 +70,10 @@
           id="margin-form">
 
         <!-- Jaar -->
-        <label for="year">Jaar:</label>
+        <label for="year">Year:</label>
         <select name="year" id="year"
                 onchange="document.getElementById('margin-form').submit();">
-            <option value="">-- Kies een jaar --</option>
+            <option value="">-- Choose a Year --</option>
             {% for y in years %}
                 <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>
                     {{ y }}
@@ -82,10 +82,10 @@
         </select>
 
         <!-- Land -->
-        <label for="country">Land:</label>
+        <label for="country">Country:</label>
         <select name="country" id="country"
                 onchange="document.getElementById('margin-form').submit();">
-            <option value="">Alle landen</option>
+            <option value="">All Countries</option>
             {% for country in countries %}
                 <option value="{{ country }}" {% if selected_country == country %}selected{% endif %}>
                     {{ country }}
@@ -94,9 +94,9 @@
         </select>
 
         <!-- Klant -->
-        <label for="client_id">Klant:</label>
+        <label for="client_id">Client:</label>
         <select name="client_id" id="client_id" required>
-            <option value="">-- Kies een klant --</option>
+            <option value="">-- Choose a Client --</option>
             {% for c in clients %}
                 <option value="{{ c.CLIENT_ID }}" {% if selected_client_id == c.CLIENT_ID %}selected{% endif %}>
                     {{ c.Name }}
@@ -104,30 +104,30 @@
             {% endfor %}
         </select>
 
-        <button type="submit">Toon marge</button>
+        <button type="submit">Show Margin</button>
     </form>
 
     <div class="margin-result">
         {% if total_margin is not none and selected_year and selected_client_id %}
-            <h2>Gemiddelde nettomarge per order ({{ selected_year }})</h2>
+            <h2>Average net margin per order ({{ selected_year }})</h2>
             <p class="subtitle">
-                Dit is de gemiddelde nettomarge van alle orders van de geselecteerde klant
-                in {{ selected_year }}, op basis van Paid_price minus productie-, transport-,
-                stockage- en licentiekosten.
+                This is the average net margin of all orders from the selected customer
+                in {{ selected_year }}, based on Paid_price minus production, transport,
+                storage and licence costs.
             </p>
             <p class="margin-value">
                 {{ total_margin }} €
             </p>
 
             {% if orders %}
-                <h3>Overzicht orders in {{ selected_year }}</h3>
+                <h3>Overview of orders in {{ selected_year }}</h3>
                 <table class="margin-table">
                     <thead>
                     <tr>
                         <th>Order nr.</th>
-                        <th>Datum</th>
-                        <th>Omzet (Paid_price)</th>
-                        <th>Nettomarge</th>
+                        <th>Date</th>
+                        <th>Revenue (Paid_price)</th>
+                        <th>Net Margin</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -142,17 +142,17 @@
                     </tbody>
                 </table>
             {% else %}
-                <p class="subtitle">Deze klant heeft geen orders in {{ selected_year }}.</p>
+                <p class="subtitle">This customer has no orders in {{ selected_year }}.</p>
             {% endif %}
 
         {% else %}
             <p class="subtitle">
-                Selecteer eerst een jaar en een klant om de marge en orders te bekijken.
+                First, select a year and a customer to view the margin and orders.
             </p>
         {% endif %}
     </div>
 
-    <a href="{{ url_for('main.home_page') }}"><button>Terug naar home</button></a>
+    <a href="{{ url_for('main.home_page') }}"><button>Back</button></a>
 </div>
 
 </body>
