@@ -48,7 +48,7 @@
 
     <div class="info-box">
         <strong>Methode:</strong> Simple Exponential Smoothing (SES)<br>
-        <strong>Gebruikte α:</strong> {{ alpha_used }}<br><br>
+        <strong>Used α:</strong> {{ alpha_used }}<br><br>
         {{ method_info }}
     </div>
 
@@ -104,13 +104,13 @@
             });
         </script>
 
-        <h2 style="margin-top:35px;">Forecast Tabel</h2>
+        <h2 style="margin-top:35px;">Forecast Table</h2>
 
         <table class="forecast-table">
             <thead>
                 <tr>
-                    <th>Maand</th>
-                    <th>Werkelijke Revenue</th>
+                    <th>Month</th>
+                    <th>Weekly Revenue</th>
                     <th>Forecast</th>
                 </tr>
             </thead>
@@ -131,11 +131,11 @@
             </tbody>
         </table>
     {% else %}
-        <p>Er zijn nog geen gegevens beschikbaar om een forecast te tonen.</p>
+        <p>No data is available yet to show a forecast.</p>
     {% endif %}
 
     <br>
-    <button class="back-button" onclick="window.location.href='/home'">Terug</button>
+    <button class="back-button" onclick="window.location.href='/home'">Back</button>
 
 </div>
 </body>
