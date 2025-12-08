@@ -5,6 +5,66 @@
     <title>Margin - LiQ</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
     <style>
+        /* OVERRIDE: make main container wider with smaller side padding */
+        .home-container {
+            max-width: 1400px;          /* was smaller; gives more room */
+            width: 95%;                 /* uses most of the screen width */
+            margin: 0 auto;             /* centered */
+            padding: 1.5rem 1.5rem 2rem;/* smaller side padding */
+        }
+
+        .layout-wrapper {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        /* LEFT FIXED PANEL */
+        .info-panel {
+            width: 360px;
+            min-height: 420px;
+            background: rgba(255,255,255,0.96);
+            padding: 1.4rem 1.6rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 100px;
+            overflow-y: auto;
+        }
+
+        .info-panel h3 {
+            margin-top: 0;
+            margin-bottom: .35rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .info-panel .placeholder {
+            opacity: 0.7;
+            font-style: italic;
+            margin-top: .5rem;
+        }
+
+        .block {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            line-height: 1.35;
+        }
+
+        .block-title {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            text-decoration: underline;
+        }
+
+        .formula-line {
+            font-family: "Courier New", monospace;
+            font-size: 0.9rem;
+        }
+
         .margin-table {
             width: 100%;
             border-collapse: collapse;
@@ -16,17 +76,15 @@
             padding: 8px 10px;
             text-align: left;
         }
-        .margin-table th {
-            font-weight: bold;
-        }
         .margin-table tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-        .margin-value {
-            font-size: 1.8rem;
-            font-weight: bold;
-            margin-top: 0.5rem;
+
+        .order-row:hover {
+            background-color: #ffe8cc !important;
+            cursor: pointer;
         }
+
         .filter-form {
             margin-top: 1rem;
             margin-bottom: 1.5rem;
@@ -36,12 +94,10 @@
             align-items: center;
             justify-content: center;
         }
-        .filter-form label {
-            font-weight: 500;
-        }
-        .filter-form select,
-        .filter-form button {
-            padding: 0.35rem 0.6rem;
+
+        .margin-value {
+            font-size: 1.2rem;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -51,28 +107,26 @@
     <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
 
     <h1>
-        Margin per Client
+        Margin overview
         {% if selected_year %}
             ({{ selected_year }})
         {% endif %}
     </h1>
 
     <p class="subtitle">
-        The net margin per customer is the average of the net margins per order,
-        where the Paid_price per order is reduced by production, transport,
-        storage and licence costs.
+        Net margin is calculated per order as <strong>Paid_price</strong> minus
+        production, transport, storage and licence costs. Hover an order row to see a
+        detailed explanation of how its margin is built up.
     </p>
 
     <!-- FILTERS -->
     <form method="get"
           action="{{ url_for('main.margin_page') }}"
-          class="filter-form"
-          id="margin-form">
+          class="filter-form">
 
-        <!-- Jaar -->
+        <!-- Year -->
         <label for="year">Year:</label>
-        <select name="year" id="year"
-                onchange="document.getElementById('margin-form').submit();">
+        <select name="year" id="year">
             <option value="">-- Choose a Year --</option>
             {% for y in years %}
                 <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>
@@ -81,10 +135,9 @@
             {% endfor %}
         </select>
 
-        <!-- Land -->
+        <!-- Country -->
         <label for="country">Country:</label>
-        <select name="country" id="country"
-                onchange="document.getElementById('margin-form').submit();">
+        <select name="country" id="country">
             <option value="">All Countries</option>
             {% for country in countries %}
                 <option value="{{ country }}" {% if selected_country == country %}selected{% endif %}>
@@ -93,10 +146,10 @@
             {% endfor %}
         </select>
 
-        <!-- Klant -->
+        <!-- Client (optional) -->
         <label for="client_id">Client:</label>
-        <select name="client_id" id="client_id" required>
-            <option value="">-- Choose a Client --</option>
+        <select name="client_id" id="client_id">
+            <option value="">-- All clients --</option>
             {% for c in clients %}
                 <option value="{{ c.CLIENT_ID }}" {% if selected_client_id == c.CLIENT_ID %}selected{% endif %}>
                     {{ c.Name }}
@@ -104,50 +157,97 @@
             {% endfor %}
         </select>
 
-        <button type="submit">Show Margin</button>
+        <button type="submit">Show margin</button>
     </form>
 
     <div class="margin-result">
-        {% if total_margin is not none and selected_year and selected_client_id %}
-            <h2>Average net margin per order ({{ selected_year }})</h2>
-            <p class="subtitle">
-                This is the average net margin of all orders from the selected customer
-                in {{ selected_year }}, based on Paid_price minus production, transport,
-                storage and licence costs.
+        {% if avg_margin is not none and selected_year %}
+            <h2>Net margin summary ({{ selected_year }})</h2>
+
+            <p class="margin-value">
+                Average net margin per order: {{ avg_margin }} €
             </p>
             <p class="margin-value">
-                {{ total_margin }} €
+                Total net margin (all orders): {{ sum_margin }} €
+            </p>
+            <p class="subtitle">
+                Included orders: {{ order_count }}
+                {% if selected_client_id %}
+                    (selected client only)
+                {% elif selected_country %}
+                    (all clients in {{ selected_country }})
+                {% else %}
+                    (all clients in all countries)
+                {% endif %}
             </p>
 
             {% if orders %}
-                <h3>Overview of orders in {{ selected_year }}</h3>
-                <table class="margin-table">
-                    <thead>
-                    <tr>
-                        <th>Order nr.</th>
-                        <th>Date</th>
-                        <th>Revenue (Paid_price)</th>
-                        <th>Net Margin</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for o in orders %}
-                        <tr>
-                            <td>{{ o.order_nr }}</td>
-                            <td>{{ o.order_date }}</td>
-                            <td>{{ o.revenue }} €</td>
-                            <td>{{ o.order_margin }} €</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                <div class="layout-wrapper">
+
+                    <!-- LEFT DETAIL PANEL -->
+                    <div class="info-panel" id="info-panel">
+                        <h3>Order breakdown</h3>
+                        <p class="placeholder">
+                            Hover an order row on the right to see the detailed margin
+                            calculation for that specific order.
+                        </p>
+                    </div>
+
+                    <!-- RIGHT TABLE -->
+                    <div>
+                        <h3>Orders in {{ selected_year }}</h3>
+                        <table class="margin-table">
+                            <thead>
+                            <tr>
+                                <th>Order nr.</th>
+                                <th>Date</th>
+                                <th>Revenue (Paid_price)</th>
+                                <th>Net margin</th>
+                                <th>Margin % of revenue</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for o in orders %}
+                                <tr class="order-row"
+                                    data-ordernr="{{ o.order_nr }}"
+                                    data-date="{{ o.order_date }}"
+                                    data-revenue="{{ o.revenue }}"
+                                    data-margin="{{ o.order_margin }}"
+                                    data-marginpct="{{ o.margin_pct }}"
+                                    data-prod="{{ o.prod_sum }}"
+                                    data-inbound="{{ o.inbound_sum }}"
+                                    data-storage="{{ o.storage_sum }}"
+                                    data-outbound="{{ o.outbound_sum }}"
+                                    data-license="{{ o.license_amount }}"
+                                    data-opc="{{ o.orders_per_client }}">
+                                    <td>{{ o.order_nr }}</td>
+                                    <td>{{ o.order_date }}</td>
+                                    <td>{{ o.revenue }} €</td>
+                                    <td>{{ o.order_margin }} €</td>
+                                    <td>
+                                        {% if o.margin_pct is not none %}
+                                            {{ o.margin_pct }} %
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
             {% else %}
-                <p class="subtitle">This customer has no orders in {{ selected_year }}.</p>
+                <p class="subtitle">
+                    There are no orders for this selection in {{ selected_year }}.
+                </p>
             {% endif %}
 
         {% else %}
             <p class="subtitle">
-                First, select a year and a customer to view the margin and orders.
+                First select a year (and optionally a country and/or client) and then click
+                <strong>"Show margin"</strong> to view the results.
             </p>
         {% endif %}
     </div>
@@ -155,5 +255,92 @@
     <a href="{{ url_for('main.home_page') }}"><button>Back</button></a>
 </div>
 
+<script>
+    const panel = document.getElementById("info-panel");
+    const rows = document.querySelectorAll(".order-row");
+
+    function euro(v) {
+        return Number(v).toFixed(2) + " €";
+    }
+
+    rows.forEach(row => {
+        row.addEventListener("mouseenter", () => {
+            const revenue = Number(row.dataset.revenue || 0);
+            const margin  = Number(row.dataset.margin || 0);
+            const prod    = Number(row.dataset.prod || 0);
+            const inbound = Number(row.dataset.inbound || 0);
+            const storage = Number(row.dataset.storage || 0);
+            const outbound= Number(row.dataset.outbound || 0);
+            const licence = Number(row.dataset.license || 0);
+            const opc     = Number(row.dataset.opc || 0);
+            const marginPct = row.dataset.marginpct || "-";
+
+            // licence % on revenue (brand fee for this order)
+            const licencePct = revenue ? (licence / revenue * 100) : 0;
+
+            panel.innerHTML = `
+                <h3>Order ${row.dataset.ordernr}</h3>
+
+                <div class="block">
+                    <div class="block-title">Basic info</div>
+                    <strong>Date:</strong> ${row.dataset.date}<br>
+                    <strong>Revenue (Paid_price):</strong> ${euro(revenue)}<br>
+                    <strong>Net margin:</strong> ${euro(margin)} (${marginPct} %)
+                </div>
+
+                <div class="block">
+                    <div class="block-title">Formula</div>
+                    <div class="formula-line">
+                        M = Paid_price
+                        − Production costs
+                        − Inbound transport
+                        − Storage
+                        − Outbound transport
+                        − Licence fee
+                    </div>
+                </div>
+
+                <div class="block">
+                    <div class="block-title">Cost components (sums over all products in this order)</div>
+                    <ul style="margin:0 0 0 1.1rem; padding:0;">
+                        <li><strong>Production cost</strong> (factory cost of all units):
+                            ${euro(prod)}</li>
+                        <li><strong>Inbound transport</strong>
+                            (supplier → warehouse, all units in this order):
+                            ${euro(inbound)}</li>
+                        <li><strong>Storage cost</strong>
+                            (warehouse storage for all ordered units):
+                            ${euro(storage)}</li>
+                        <li><strong>Outbound transport</strong>
+                            (warehouse → client, client-specific average allocated
+                            to this order${opc ? `, based on ${opc} orders` : ""}):
+                            ${euro(outbound)}</li>
+                        <li><strong>Licence fee</strong>
+                            (brand fee on revenue, ~${licencePct.toFixed(2)} % of Paid_price):
+                            ${euro(licence)}</li>
+                    </ul>
+                </div>
+
+                <div class="block">
+                    <div class="block-title">Filled-in calculation</div>
+                    <div class="formula-line">
+                        M = ${euro(revenue)}
+                        − ${euro(prod)}
+                        − ${euro(inbound)}
+                        − ${euro(storage)}
+                        − ${euro(outbound)}
+                        − ${euro(licence)}
+                    </div>
+                    <div class="formula-line" style="margin-top:0.25rem;">
+                        = <strong>${euro(margin)}</strong>
+                    </div>
+                </div>
+            `;
+        });
+    });
+</script>
+
 </body>
 </html>
+
+
