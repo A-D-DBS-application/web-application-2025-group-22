@@ -114,43 +114,44 @@ def home_page():
 @main.route("/margin")
 def margin_page():
     """
-    MARGE PER KLANT (filterbaar per jaar)
+    NET MARGIN ANALYSIS
 
-    - MARGE PER ORDER:
-      Omzet = ORDER.Paid_price  (totaal betaalde prijs voor de order)
+    Revenue per order:
+      - ORDER.Paid_price
 
-      Nettomarge per order =
-
+    Net margin per order:
       ORDER.Paid_price
-      - som_per_product( PRODUCT_COST.Production_cost * ORDER_LINE.Quantity )
-      - som_per_product( PRODUCT_COST.Inbound_transport_cost * ORDER.Quantity )
-      - som_per_product( PRODUCT_COST.Storage_cost * ORDER_LINE.Quantity )
-      - som_per_product( (CLIENT_COST.Outbound_transport_cost * ORDER.Quantity)
-                         / aantal_orders_klant_in_het_gekozen_jaar )
-      - ( License_fee_procent * ORDER.Paid_price )
+      - Σ(Production_cost * ORDER_LINE.Quantity)
+      - Σ(Inbound_transport_cost * ORDER.Quantity)
+      - Σ(Storage_cost * ORDER_LINE.Quantity)
+      - Σ((CLIENT_COST.Outbound_transport_cost * ORDER.Quantity)
+          / number_of_orders_for_that_client_in_selected_year)
+      - (License_fee_procent * ORDER.Paid_price)
 
-    - MARGE PER KLANT:
-      GEMIDDELDE van alle nettomarges van de orders van die specifieke klant
-      in het gekozen jaar.
+    We return:
+      - avg_margin: average net margin per order in the selection
+      - sum_margin: total net margin of all orders in the selection
+      - margin_pct per order: order_margin / Paid_price * 100
+      - plus detail sums per order (prod / inbound / storage / outbound / licence)
+        for the tooltip.
     """
 
     # -------------------------
-    # FILTERPARAMS UIT QUERYSTRING
+    # FILTER PARAMS
     # -------------------------
     selected_year_str = request.args.get("year", "").strip()
     selected_country = request.args.get("country", "").strip()
     selected_client_id = request.args.get("client_id", type=int)
 
-    # year -> int / None
     selected_year = int(selected_year_str) if selected_year_str.isdigit() else None
 
     # -------------------------
-    # LANDEN-LIJST (voor dropdown)
+    # COUNTRY LIST
     # -------------------------
     countries = sorted({c.Country for c in CLIENT.query.all() if c.Country})
 
     # -------------------------
-    # JAAR-LIJST (distinct jaren met orders)
+    # YEAR LIST (distinct years with orders)
     # -------------------------
     year_rows = (
         db.session.query(func.extract("year", ORDER.Order_date).label("year"))
@@ -161,7 +162,7 @@ def margin_page():
     years = [int(r.year) for r in year_rows if r.year is not None]
 
     # -------------------------
-    # CLIENT-LIJST gefilterd op land
+    # CLIENT LIST (optionally filtered by country)
     # -------------------------
     client_query = CLIENT.query
     if selected_country:
@@ -172,16 +173,19 @@ def margin_page():
 
     clients = client_query.order_by(CLIENT.Name).all()
 
-    # Default: nog niks berekend
-    total_margin = None
+    # Defaults for template
+    avg_margin = None
+    sum_margin = None
+    order_count = 0
     orders_for_view: list[dict] = []
 
-    # Nog niet alles gekozen -> alleen filters tonen
-    # We rekenen pas als én jaar én klant gekozen zijn.
-    if not selected_client_id or not selected_year:
+    # If no year is selected yet -> only show filters
+    if not selected_year:
         return render_template(
             "margin.html",
-            total_margin=total_margin,
+            avg_margin=avg_margin,
+            sum_margin=sum_margin,
+            order_count=order_count,
             orders=orders_for_view,
             countries=countries,
             clients=clients,
@@ -192,142 +196,257 @@ def margin_page():
         )
 
     # -------------------------
-    # BASISFILTERS (gekozen jaar + klant [+ optioneel land])
+    # BASE FILTERS (year + optional country)
     # -------------------------
     start_date = date(selected_year, 1, 1)
     end_date = date(selected_year, 12, 31)
 
-    base_filters = [
+    base_filters_year_country = [
         ORDER.Order_date >= start_date,
         ORDER.Order_date <= end_date,
-        ORDER.CLIENT_ID == selected_client_id,
     ]
     if selected_country:
         country_norm = selected_country.lower()
-        base_filters.append(
+        base_filters_year_country.append(
             func.lower(func.trim(CLIENT.Country)) == country_norm
         )
 
     # -------------------------
-    # AANTAL ORDERS VAN DEZE KLANT IN DIT JAAR
-    # -------------------------
-    order_count_value = (
-        db.session.query(func.count(func.distinct(ORDER.ORDER_NR)))
-        .join(CLIENT, CLIENT.CLIENT_ID == ORDER.CLIENT_ID)
-        .filter(*base_filters)
-        .scalar()
-    )
-
-    if not order_count_value:
-        # Geen orders: marge 0 en lege tabel
-        total_margin = 0.0
-        return render_template(
-            "margin.html",
-            total_margin=total_margin,
-            orders=orders_for_view,
-            countries=countries,
-            clients=clients,
-            years=years,
-            selected_year=selected_year,
-            selected_country=selected_country,
-            selected_client_id=selected_client_id,
-        )
-
-    orders_per_client_const = float(order_count_value)
-
-    # -------------------------
-    # KOSTEN MET COALESCE (NULL -> 0)
+    # COST TERMS (COALESCE)
     # -------------------------
     inbound = func.coalesce(PRODUCT_COST.Inbound_transport_cost, 0.0)
     prod_cost = func.coalesce(PRODUCT_COST.Production_cost, 0.0)
     storage = func.coalesce(PRODUCT_COST.Storage_cost, 0.0)
     outbound = func.coalesce(CLIENT_COST.Outbound_transport_cost, 0.0)
     license_pct = func.coalesce(BRAND.License_fee_procent, 0.0)
-    # Als License_fee_procent = 5 betekent 5%, dan eventueel: license_pct_effective = license_pct / 100.0
+    # Als DB 5 betekent 5%, dan hier: license_pct_effective = license_pct / 100.0
     license_pct_effective = license_pct
 
-    # -------------------------
-    # OMZET & KOSTEN-TERMEN
-    # -------------------------
-
-    # Omzet per order = totaal betaalde prijs
+    # Revenue per order = Paid_price (coalesced)
     revenue_expr_order = func.coalesce(ORDER.Paid_price, 0.0)
 
-    # Kosten die per productregel worden opgebouwd, later gesommeerd per order
-    line_cost_expr = (
-        (prod_cost * ORDER_LINE.Quantity)
-        + (inbound * ORDER.Quantity)
-        + (storage * ORDER_LINE.Quantity)
-        + ((outbound * ORDER.Quantity) / orders_per_client_const)
-    )
+    # -------------------------
+    # MODE 1: CLIENT SELECTED  -> per-client view
+    # -------------------------
+    if selected_client_id:
+        base_filters_client = list(base_filters_year_country)
+        base_filters_client.append(ORDER.CLIENT_ID == selected_client_id)
 
-    # -------------------------
-    # PER ORDER:
-    #   revenue = ORDER.Paid_price
-    #   marge  = revenue
-    #           - som(line_cost_expr)
-    #           - (license_pct_order * revenue)
-    #
-    # waarbij license_pct_order = max(License_fee_procent) over de lijnen van die order
-    # (gaat ervan uit dat alle producten in de order dezelfde fee hebben).
-    # -------------------------
-    per_order_query = (
-        db.session.query(
-            ORDER.ORDER_NR.label("order_nr"),
-            ORDER.Order_date.label("order_date"),
-            revenue_expr_order.label("revenue"),
-            (
-                revenue_expr_order
-                - func.sum(line_cost_expr)
-                - (func.max(license_pct_effective) * revenue_expr_order)
-            ).label("order_margin"),
+        # Number of orders for this client in this year (for outbound cost split)
+        order_count_value = (
+            db.session.query(func.count(func.distinct(ORDER.ORDER_NR)))
+            .join(CLIENT, CLIENT.CLIENT_ID == ORDER.CLIENT_ID)
+            .filter(*base_filters_client)
+            .scalar()
         )
-        .select_from(ORDER_LINE)
-        .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
-        .join(PRODUCT, ORDER_LINE.PRODUCT_ID == PRODUCT.PRODUCT_ID)
-        .join(PRODUCT_COST, PRODUCT.PRODUCT_ID == PRODUCT_COST.PRODUCT_ID)
-        .join(BRAND, PRODUCT.BRAND_ID == BRAND.BRAND_ID)
-        .join(CLIENT, ORDER.CLIENT_ID == CLIENT.CLIENT_ID)
-        .outerjoin(CLIENT_COST, CLIENT_COST.CLIENT_ID == CLIENT.CLIENT_ID)
-        .filter(*base_filters)
-        .group_by(ORDER.ORDER_NR, ORDER.Order_date, ORDER.Paid_price)
-        .order_by(ORDER.Order_date.asc())
-    )
 
-    order_rows = per_order_query.all()
+        if not order_count_value:
+            # No orders for this client/year
+            avg_margin = 0.0
+            sum_margin = 0.0
+            order_count = 0
+            return render_template(
+                "margin.html",
+                avg_margin=avg_margin,
+                sum_margin=sum_margin,
+                order_count=order_count,
+                orders=orders_for_view,
+                countries=countries,
+                clients=clients,
+                years=years,
+                selected_year=selected_year,
+                selected_country=selected_country,
+                selected_client_id=selected_client_id,
+            )
+
+        orders_per_client_const = float(order_count_value)
+
+        # De detail-termen (elk in een aparte SUM), zodat we ze netjes kunnen tonen
+        prod_sum_expr = func.sum(prod_cost * ORDER_LINE.Quantity)
+        inbound_sum_expr = func.sum(inbound * ORDER.Quantity)
+        storage_sum_expr = func.sum(storage * ORDER_LINE.Quantity)
+        outbound_sum_expr = func.sum((outbound * ORDER.Quantity) / orders_per_client_const)
+        license_amount_expr = func.max(license_pct_effective) * revenue_expr_order
+
+        order_margin_expr = (
+            revenue_expr_order
+            - prod_sum_expr
+            - inbound_sum_expr
+            - storage_sum_expr
+            - outbound_sum_expr
+            - license_amount_expr
+        )
+
+        per_order_query = (
+            db.session.query(
+                ORDER.ORDER_NR.label("order_nr"),
+                ORDER.Order_date.label("order_date"),
+                revenue_expr_order.label("revenue"),
+                prod_sum_expr.label("prod_sum"),
+                inbound_sum_expr.label("inbound_sum"),
+                storage_sum_expr.label("storage_sum"),
+                outbound_sum_expr.label("outbound_sum"),
+                license_amount_expr.label("license_amount"),
+                order_margin_expr.label("order_margin"),
+            )
+            .select_from(ORDER_LINE)
+            .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
+            .join(PRODUCT, ORDER_LINE.PRODUCT_ID == PRODUCT.PRODUCT_ID)
+            .join(PRODUCT_COST, PRODUCT.PRODUCT_ID == PRODUCT_COST.PRODUCT_ID)
+            .join(BRAND, PRODUCT.BRAND_ID == BRAND.BRAND_ID)
+            .join(CLIENT, ORDER.CLIENT_ID == CLIENT.CLIENT_ID)
+            .outerjoin(CLIENT_COST, CLIENT_COST.CLIENT_ID == CLIENT.CLIENT_ID)
+            .filter(*base_filters_client)
+            .group_by(ORDER.ORDER_NR, ORDER.Order_date, ORDER.Paid_price)
+            .order_by(ORDER.Order_date.asc())
+        )
+
+        per_order_rows = per_order_query.all()
+        orders_per_client_for_row = None  # we kennen het constant
 
     # -------------------------
-    # DATA VOOR TEMPLATE
+    # MODE 2: NO CLIENT SELECTED -> all clients (optionally by country)
+    # -------------------------
+    else:
+        # Subquery: number of orders per client in this year/country selection
+        order_count_subq = (
+            db.session.query(
+                ORDER.CLIENT_ID.label("CLIENT_ID"),
+                func.count(func.distinct(ORDER.ORDER_NR)).label("order_count"),
+            )
+            .join(CLIENT, CLIENT.CLIENT_ID == ORDER.CLIENT_ID)
+            .filter(*base_filters_year_country)
+            .group_by(ORDER.CLIENT_ID)
+            .subquery()
+        )
+
+        orders_per_client = func.nullif(order_count_subq.c.order_count, 0.0)
+
+        prod_sum_expr = func.sum(prod_cost * ORDER_LINE.Quantity)
+        inbound_sum_expr = func.sum(inbound * ORDER.Quantity)
+        storage_sum_expr = func.sum(storage * ORDER_LINE.Quantity)
+        outbound_sum_expr = func.sum((outbound * ORDER.Quantity) / orders_per_client)
+        license_amount_expr = func.max(license_pct_effective) * revenue_expr_order
+
+        order_margin_expr = (
+            revenue_expr_order
+            - prod_sum_expr
+            - inbound_sum_expr
+            - storage_sum_expr
+            - outbound_sum_expr
+            - license_amount_expr
+        )
+
+        per_order_query = (
+            db.session.query(
+                ORDER.ORDER_NR.label("order_nr"),
+                ORDER.Order_date.label("order_date"),
+                revenue_expr_order.label("revenue"),
+                prod_sum_expr.label("prod_sum"),
+                inbound_sum_expr.label("inbound_sum"),
+                storage_sum_expr.label("storage_sum"),
+                outbound_sum_expr.label("outbound_sum"),
+                license_amount_expr.label("license_amount"),
+                order_margin_expr.label("order_margin"),
+                func.max(order_count_subq.c.order_count).label("orders_per_client"),
+            )
+            .select_from(ORDER_LINE)
+            .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
+            .join(PRODUCT, ORDER_LINE.PRODUCT_ID == PRODUCT.PRODUCT_ID)
+            .join(PRODUCT_COST, PRODUCT.PRODUCT_ID == PRODUCT_COST.PRODUCT_ID)
+            .join(BRAND, PRODUCT.BRAND_ID == BRAND.BRAND_ID)
+            .join(CLIENT, ORDER.CLIENT_ID == CLIENT.CLIENT_ID)
+            .outerjoin(CLIENT_COST, CLIENT_COST.CLIENT_ID == CLIENT.CLIENT_ID)
+            .outerjoin(order_count_subq, order_count_subq.c.CLIENT_ID == ORDER.CLIENT_ID)
+            .filter(*base_filters_year_country)
+            .group_by(ORDER.ORDER_NR, ORDER.Order_date, ORDER.Paid_price)
+            .order_by(ORDER.Order_date.asc())
+        )
+
+        per_order_rows = per_order_query.all()
+        orders_per_client_const = None  # hier per order verschillend
+
+    # -------------------------
+    # GEEN ORDERS?
+    # -------------------------
+    if not per_order_rows:
+        avg_margin = 0.0
+        sum_margin = 0.0
+        order_count = 0
+        return render_template(
+            "margin.html",
+            avg_margin=avg_margin,
+            sum_margin=sum_margin,
+            order_count=order_count,
+            orders=orders_for_view,
+            countries=countries,
+            clients=clients,
+            years=years,
+            selected_year=selected_year,
+            selected_country=selected_country,
+            selected_client_id=selected_client_id,
+        )
+
+    # -------------------------
+    # PREP DATA FOR TEMPLATE
     # -------------------------
     sum_margins = 0.0
     orders_for_view = []
 
-    for r in order_rows:
+    for r in per_order_rows:
         margin_value = float(r.order_margin or 0.0)
         revenue_value = float(r.revenue or 0.0)
+        prod_sum = float(r.prod_sum or 0.0)
+        inbound_sum = float(r.inbound_sum or 0.0)
+        storage_sum = float(r.storage_sum or 0.0)
+        outbound_sum = float(r.outbound_sum or 0.0)
+        license_amount = float(r.license_amount or 0.0)
+
         sum_margins += margin_value
 
-        date_str = ""
-        if r.order_date:
-            date_str = r.order_date.strftime("%Y-%m-%d")
+        date_str = r.order_date.strftime("%Y-%m-%d") if r.order_date else ""
 
-        orders_for_view.append({
-            "order_nr": r.order_nr,
-            "order_date": date_str,
-            "revenue": round(revenue_value, 2),
-            "order_margin": round(margin_value, 2),
-        })
+        # margin % of revenue (Paid_price)
+        margin_pct = None
+        if revenue_value:
+            margin_pct = round((margin_value / revenue_value) * 100.0, 2)
 
-    if orders_per_client_const:
-        avg_margin = sum_margins / orders_per_client_const
+        # aantal orders per client (voor tekst in tooltip)
+        if selected_client_id:
+            opc = orders_per_client_const
+        else:
+            opc = int(r.orders_per_client or 0) if hasattr(r, "orders_per_client") else 0
+
+        orders_for_view.append(
+            {
+                "order_nr": r.order_nr,
+                "order_date": date_str,
+                "revenue": round(revenue_value, 2),
+                "order_margin": round(margin_value, 2),
+                "margin_pct": margin_pct,
+                "prod_sum": round(prod_sum, 2),
+                "inbound_sum": round(inbound_sum, 2),
+                "storage_sum": round(storage_sum, 2),
+                "outbound_sum": round(outbound_sum, 2),
+                "license_amount": round(license_amount, 2),
+                "orders_per_client": opc,
+            }
+        )
+
+    order_count = len(per_order_rows)
+    if order_count:
+        avg_margin_value = sum_margins / order_count
     else:
-        avg_margin = 0.0
+        avg_margin_value = 0.0
 
-    total_margin = round(avg_margin, 2)
+    avg_margin = round(avg_margin_value, 2)
+    sum_margin = round(sum_margins, 2)
 
     return render_template(
         "margin.html",
-        total_margin=total_margin,
+        avg_margin=avg_margin,
+        sum_margin=sum_margin,
+        order_count=order_count,
         orders=orders_for_view,
         countries=countries,
         clients=clients,
@@ -336,6 +455,10 @@ def margin_page():
         selected_country=selected_country,
         selected_client_id=selected_client_id,
     )
+
+
+
+
 
 # -------------------------
 # CLIENTS LIST
