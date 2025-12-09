@@ -208,3 +208,22 @@ body {
         grid-template-columns: 1fr;
     }
 }
+/* ======================== TOOLS BOX ======================== */
+
+.tools-box {
+    background-color: #4a2f1c;     /* Donkerbruin */
+    padding: 18px;
+    border-radius: 16px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tools-box .menu-item {
+    color: #fff !important;
+}
+
+.tools-box .menu-item:hover {
+    background-color: #6b4a30;
+}
