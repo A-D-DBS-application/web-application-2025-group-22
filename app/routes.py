@@ -97,6 +97,10 @@ def home_page():
     webuser_count = WEBUSER.query.count()
     supplier_count = SUPPLIER.query.count()
 
+    # Haal de 5 meest recente orders op
+    recent_orders = ORDER.query.order_by(ORDER.Order_date.desc()).limit(5).all()
+
+
     return render_template(
         "home.html",
         client_count=client_count,
@@ -104,6 +108,7 @@ def home_page():
         order_count=order_count,
         webuser_count=webuser_count,
         supplier_count=supplier_count,
+        recent_orders=recent_orders   
     )
 
 

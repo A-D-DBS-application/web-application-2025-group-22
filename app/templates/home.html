@@ -1,62 +1,128 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Home - LiQ</title>
+    <title>Dashboard - DataSight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
-<body>
-    <div class="home-container">
-        
-        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+<body class="dashboard-bg">
 
-        <h1>Welcome to the homepage</h1>
-        <p class="subtitle">Select an option to continue.</p>
 
-        <!-- 📊 STATISTIEKEN -->
-        <div class="stats-container">
+<div class="layout">
 
-            <a class="stat-box" href="{{ url_for('main.clients') }}">
-                Clients: <strong>{{ client_count }}</strong>
+    <!-- ====================== SIDEBAR ====================== -->
+    <aside class="sidebar">
+
+        <div class="logo-area">
+            <img src="{{ url_for('static', filename='DataSight.png') }}" class="logo">
+            <span class="logo-text">DataSight</span>
+        </div>
+
+        <p class="section-title">DATA</p>
+
+        <nav class="menu">
+
+            <a href="{{ url_for('main.home_page') }}" class="menu-item active">
+                <i class="icon">🏠</i> Dashboard
             </a>
 
-            <a class="stat-box" href="{{ url_for('main.orders') }}">
-                Orders: <strong>{{ order_count }}</strong>
+            <a href="{{ url_for('main.clients') }}" class="menu-item">
+                <i class="icon">👤</i> Clients
             </a>
 
-            <a class="stat-box" href="{{ url_for('main.products') }}">
-                Products: <strong>{{ product_count }}</strong>
+            <a href="{{ url_for('main.webusers') }}" class="menu-item">
+                <i class="icon">🧑‍💻</i> Webusers
             </a>
 
-            <!-- 🔄 BRANDS VERWIJDERD – VERVANGT DOOR WEBUSERS -->
-            <a class="stat-box" href="{{ url_for('main.webusers') }}">
-                Webusers: <strong>{{ webuser_count }}</strong>
+            <a href="{{ url_for('main.suppliers') }}" class="menu-item">
+                <i class="icon">🚚</i> Suppliers
             </a>
 
-            <a class="stat-box" href="{{ url_for('main.suppliers') }}">
-                Suppliers: <strong>{{ supplier_count }}</strong>
+            <a href="{{ url_for('main.products') }}" class="menu-item">
+                <i class="icon">📦</i> Products
             </a>
+
+            <a href="{{ url_for('main.orders') }}" class="menu-item">
+                <i class="icon">🛒</i> Orders
+            </a>
+
+        </nav>
+
+      <p class="section-title">TOOLS</p>
+
+<div class="tools-box">
+    <nav class="menu">
+        <a href="{{ url_for('main.margin_page') }}" class="menu-item">
+            <i class="icon">📊</i> Margin & Filters
+        </a>
+
+        <a href="{{ url_for('main.forecast_page') }}" class="menu-item">
+            <i class="icon">📈</i> Forecast Algorithm
+        </a>
+
+        <a href="{{ url_for('main.add_records_page') }}" class="menu-item">
+            <i class="icon">➕</i> Add Records
+        </a>
+    </nav>
+</div>
+
+
+
+    </aside>
+
+    <!-- ====================== MAIN CONTENT ====================== -->
+    <main class="content-area">
+
+        <h1 class="page-title">Dashboard</h1>
+
+        <!-- ========= STAT CARDS ========= -->
+        <div class="stats-grid">
+
+            <div class="stat-card">
+                <div class="stat-label">Totaal Clients</div>
+                <div class="stat-value">{{ client_count }}</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Active Products</div>
+                <div class="stat-value">{{ product_count }}</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Totaal Orders</div>
+                <div class="stat-value">{{ order_count }}</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Totaal Suppliers</div>
+                <div class="stat-value">{{ supplier_count }}</div>
+            </div>
 
         </div>
 
-        <!-- 🎛 BUTTONS -->
-        <div class="button-group">
+        <!-- ========= RECENT ORDERS BOX ========= -->
+        <div class="recent-box">
+            <h2>Recente Orders</h2>
 
-            <a href="{{ url_for('main.margin_page') }}" class="main-btn">
-                Margin & Filters
-            </a>
-
-            <a href="{{ url_for('main.forecast_page') }}" class="main-btn">
-                Forecast Algoritm
-            </a>
-
-            <a href="{{ url_for('main.add_records_page') }}" class="main-btn">
-                Add Records
-            </a>
-
+            <div class="recent-content">
+                {% if recent_orders and recent_orders|length > 0 %}
+                    {% for order in recent_orders %}
+                        <div class="order-item">
+                            Order #{{ order.ORDER_NR }} • {{ order.Order_date }}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    Geen orders gevonden.
+                {% endif %}
+            </div>
         </div>
 
-    </div>
+    </main>
+
+</div>
+
 </body>
 </html>

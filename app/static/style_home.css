@@ -1,129 +1,210 @@
-/* --- LIQ HOME STYLE (zelfde stijl als login) --- */
+/* ======================== GLOBAL LAYOUT ======================== */
 
-/* Achtergrond met LIQ-afbeelding */
-body {
+* {
     margin: 0;
     padding: 0;
-    font-family: 'Inter', sans-serif;
-    background: url("/static/LIQ_BN_banner.webp") no-repeat center center fixed;
-    background-size: cover;
-    height: 100vh;
+    box-sizing: border-box;
+    font-family: "Inter", sans-serif;
+}
+
+body {
+    background-color: #f7f1e9; /* Beige achtergrond voor ALLE pagina’s behalve Dashboard */
+}
+
+/* Alleen dashboard krijgt een achtergrondfoto */
+.dashboard-bg {
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+        url("/static/LIQ_BN_banner.webp") center/cover no-repeat fixed;
+}
+
+/* ======================== LAYOUT STRUCTURE ======================== */
+
+.layout {
     display: flex;
-    justify-content: center;
+    height: 100vh;
+}
+
+/* ======================== SIDEBAR ======================== */
+
+.sidebar {
+    width: 260px;
+    background-color: #fff;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #e5d5c4;
+}
+
+.logo-area {
+    display: flex;
     align-items: center;
-    position: relative;
+    gap: 12px;
+    margin-bottom: 30px;
 }
 
-/* Soft overlay met blur */
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: rgba(255, 245, 230, 0.6);
-    backdrop-filter: blur(2px);
-    z-index: -1;
-}
-
-/* Centrale container */
-.home-container {
-    background: #fff8f0;
-    padding: 50px 60px;
-    border-radius: 25px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
-    text-align: center;
-    max-width: 700px;
-    animation: fadeIn 0.7s ease;
-}
-
-/* Logo */
 .logo {
-    width: 160px;
-    margin-bottom: 10px;
+    width: 45px;
+    height: auto;
 }
 
-/* Titel */
-h1 {
-    color: #7a3e1e;
-    font-size: 28px;
+.logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: #5f3d2a;
+}
+
+.section-title {
+    font-size: 12px;
+    margin-top: 20px;
     margin-bottom: 10px;
+    font-weight: 600;
+    color: #9c7d67;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    color: #684d3c;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.menu-item.active,
+.menu-item:hover {
+    background-color: #e8d6c5;
+}
+
+.logout {
+    margin-top: auto;
+    padding: 12px;
+    border-radius: 10px;
+    color: #a13a3a;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ======================== CONTENT AREA ======================== */
+
+.content-area {
+    flex-grow: 1;
+    padding: 40px 50px;
+    color: #3c2e26;
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
 }
 
 .subtitle {
-    color: #8b5a38;
-    margin-bottom: 25px;
-    font-size: 16px;
+    margin-top: 6px;
+    margin-bottom: 30px;
+    color: #6f5a4d;
 }
 
-/* Animatie */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+/* ======================== STAT CARDS ======================== */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+    margin-bottom: 40px;
 }
 
-/* --- Klikbare STATISTIEK-VAKKEN --- */
-
-.stats-container {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-bottom: 2rem;
-    margin-top: 1.5rem;
-    flex-wrap: wrap;
+.stat-card {
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    backdrop-filter: blur(4px);
 }
 
-.stat-box {
-    display: inline-block;
-    padding: 12px 22px;
-    background: #f2e4d4;
-    border-radius: 10px;
-    font-size: 1.1rem;
-    min-width: 150px;
-    text-align: center;
-    color: #6b381f;
-    text-decoration: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-    cursor: pointer;
-    transition: 0.15s ease;
-    position: relative;
-    z-index: 5; /* voorkomt overlappende hitboxes */
+.stat-label {
+    font-size: 14px;
+    color: #6d5c53;
 }
 
-.stat-box:hover {
-    background-color: #e6d7c2;
-    transform: scale(1.05);
+.stat-value {
+    font-size: 30px;
+    font-weight: 700;
+    margin-top: 5px;
+    color: #3b2b24;
 }
 
-/* --- KNOPPEN --- */
+/* ======================== RECENT ORDERS BOX ======================== */
 
-.button-group {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 15px;
+.recent-box {
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 25px 30px;
+    border-radius: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    backdrop-filter: blur(4px);
 }
 
-.button-group a.main-btn {
-    display: inline-block;
-    padding: 12px 24px;
-    background-color: #a86b45;
-    color: white;
-    border-radius: 10px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: 0.2s ease;
+.recent-box h2 {
+    margin-bottom: 15px;
+    font-size: 22px;
+    color: #4a3a32;
 }
 
-.button-group a.main-btn:hover {
-    background-color: #8c4e28;
-    transform: translateY(-2px);
+.recent-content {
+    padding: 10px 0;
 }
 
-/* Floating ice (optioneel) */
-.floating-ice {
-    width: 120px;
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+.order-item {
+    padding: 12px;
+    background-color: #f7ede4;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #5a4438;
+    border: 1px solid #e5d5c4;
 }
 
+/* Geen orders */
+.recent-content::after {
+    content: "";
+}
+
+/* ======================== RESPONSIVE ======================== */
+
+@media (max-width: 1100px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .layout {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+        border-right: none;
+        border-bottom: 1px solid #e5d5c4;
+    }
+
+    .content-area {
+        padding: 20px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
