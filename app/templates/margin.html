@@ -5,32 +5,33 @@
     <title>Margin - LiQ</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
     <style>
-        /* OVERRIDE: make main container wider with smaller side padding */
+        /* OVERRIDE: main container wat breder en compacter */
         .home-container {
-            max-width: 1400px;          /* was smaller; gives more room */
-            width: 95%;                 /* uses most of the screen width */
-            margin: 0 auto;             /* centered */
-            padding: 1.5rem 1.5rem 2rem;/* smaller side padding */
+            max-width: 1400px;
+            width: 96%;
+            margin: 0 auto;
+            padding: 1.5rem 1.5rem 2rem;
         }
 
         .layout-wrapper {
             display: flex;
-            gap: 2rem;
+            gap: 1.5rem;
             justify-content: center;
             align-items: flex-start;
             width: 100%;
         }
 
-        /* LEFT FIXED PANEL */
+        /* LINKER DETAIL PANEL – nog breder en prominenter */
         .info-panel {
-            width: 360px;
+            flex: 0 0 520px;          /* breder gemaakt */
+            max-width: 580px;
             min-height: 420px;
-            background: rgba(255,255,255,0.96);
-            padding: 1.4rem 1.6rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+            background: rgba(255,255,255,0.98);
+            padding: 1.4rem 1.8rem;
+            border-radius: 18px;
+            box-shadow: 0 4px 22px rgba(0,0,0,0.16);
             position: sticky;
-            top: 100px;
+            top: 90px;
             overflow-y: auto;
         }
 
@@ -38,44 +39,167 @@
             margin-top: 0;
             margin-bottom: .35rem;
             font-size: 1.2rem;
-            font-weight: bold;
-            text-align: center;
+            font-weight: 700;
+            text-align: left;
         }
 
         .info-panel .placeholder {
             opacity: 0.7;
             font-style: italic;
-            margin-top: .5rem;
+            margin-top: .3rem;
+            margin-bottom: .8rem;
+            text-align: left;
         }
 
+        /* Reusable blokken in de info-panel */
         .block {
-            margin-bottom: 0.75rem;
-            font-size: 0.95rem;
-            line-height: 1.35;
+            margin-bottom: 1.1rem;
+            font-size: 0.94rem;
+            line-height: 1.4;
         }
 
         .block-title {
             font-weight: 700;
-            margin-bottom: 0.25rem;
-            text-decoration: underline;
+            margin-bottom: 0.35rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .block-title span.step {
+            font-weight: 900;
+            margin-right: 0.3rem;
+            opacity: 0.9;
+        }
+
+        .card-section {
+            background: #f7f8fb;
+            border-radius: 12px;
+            padding: 0.65rem 0.85rem;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.4rem;
+            margin-top: 0.4rem;
+            font-size: 0.9rem;
+        }
+
+        .summary-item-label {
+            font-size: 0.75rem;
+            opacity: 0.75;
+            text-transform: uppercase;
+        }
+
+        .summary-item-value {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: flex-start;
+            gap: 0.5rem;
+            margin-bottom: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.18rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            background: #eff1f7;
+            border: 1px solid rgba(0,0,0,0.05);
+            white-space: nowrap;
+        }
+
+        .badge-label {
+            opacity: 0.7;
+            margin-right: 0.25rem;
+        }
+
+        .badge-value {
+            font-weight: 600;
         }
 
         .formula-line {
             font-family: "Courier New", monospace;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
         }
 
+        .formula-box {
+            background: #f4f6fa;
+            border-radius: 10px;
+            padding: 0.6rem 0.9rem;
+            border: 1px dashed rgba(0,0,0,0.15);
+            margin-top: 0.25rem;
+        }
+
+        .formula-caption {
+            font-size: 0.78rem;
+            opacity: 0.75;
+            margin-top: 0.35rem;
+        }
+
+        .small-note {
+            font-size: 0.8rem;
+            opacity: 0.75;
+            margin-top: 0.3rem;
+        }
+
+        .component-list {
+            margin: 0.25rem 0 0.3rem 0;
+            padding-left: 1.2rem;
+        }
+
+        .component-list li {
+            margin-bottom: 0.2rem;
+        }
+
+        .highlight-bar {
+            margin-top: 0.45rem;
+            height: 6px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: #eceff5;
+            position: relative;
+        }
+
+        .highlight-bar-inner {
+            position: absolute;
+            inset: 0;
+            transform-origin: left center;
+        }
+
+        .highlight-result {
+            font-family: "Courier New", monospace;
+            font-size: 0.95rem;
+            margin-top: 0.35rem;
+        }
+
+        .highlight-result strong {
+            font-size: 1.03rem;
+        }
+
+        /* Rechterkant: tabel */
         .margin-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 2rem;
+            margin-top: 1.5rem;
         }
+
         .margin-table th,
         .margin-table td {
             border: 1px solid #ddd;
             padding: 8px 10px;
             text-align: left;
         }
+
         .margin-table tr:nth-child(even) {
             background-color: #f9f9f9;
         }
@@ -98,6 +222,11 @@
         .margin-value {
             font-size: 1.2rem;
             font-weight: bold;
+        }
+
+        .right-panel {
+            flex: 1 1 auto;
+            min-width: 0;
         }
     </style>
 </head>
@@ -184,17 +313,17 @@
             {% if orders %}
                 <div class="layout-wrapper">
 
-                    <!-- LEFT DETAIL PANEL -->
+                    <!-- LINKER DETAIL PANEL -->
                     <div class="info-panel" id="info-panel">
-                        <h3>Order breakdown</h3>
+                        <h3>Calculations of the margin</h3>
                         <p class="placeholder">
                             Hover an order row on the right to see the detailed margin
                             calculation for that specific order.
                         </p>
                     </div>
 
-                    <!-- RIGHT TABLE -->
-                    <div>
+                    <!-- RECHTER TABEL PANEL -->
+                    <div class="right-panel">
                         <h3>Orders in {{ selected_year }}</h3>
                         <table class="margin-table">
                             <thead>
@@ -219,7 +348,8 @@
                                     data-storage="{{ o.storage_sum }}"
                                     data-outbound="{{ o.outbound_sum }}"
                                     data-license="{{ o.license_amount }}"
-                                    data-opc="{{ o.orders_per_client }}">
+                                    data-opc="{{ o.orders_per_client }}"
+                                    data-qty="{{ o.total_quantity|default(0) }}">
                                     <td>{{ o.order_nr }}</td>
                                     <td>{{ o.order_date }}</td>
                                     <td>{{ o.revenue }} €</td>
@@ -265,74 +395,210 @@
 
     rows.forEach(row => {
         row.addEventListener("mouseenter", () => {
-            const revenue = Number(row.dataset.revenue || 0);
-            const margin  = Number(row.dataset.margin || 0);
-            const prod    = Number(row.dataset.prod || 0);
-            const inbound = Number(row.dataset.inbound || 0);
-            const storage = Number(row.dataset.storage || 0);
-            const outbound= Number(row.dataset.outbound || 0);
-            const licence = Number(row.dataset.license || 0);
-            const opc     = Number(row.dataset.opc || 0);
+            const revenue   = Number(row.dataset.revenue || 0);
+            const margin    = Number(row.dataset.margin || 0);
+            const prod      = Number(row.dataset.prod || 0);
+            const inbound   = Number(row.dataset.inbound || 0);
+            const storage   = Number(row.dataset.storage || 0);
+            const outbound  = Number(row.dataset.outbound || 0);  // allocated outbound for this order
+            const licence   = Number(row.dataset.license || 0);
+            const opc       = Number(row.dataset.opc || 0);       // orders per client in year
+            const qty       = Number(row.dataset.qty || 0);       // total quantity in order
             const marginPct = row.dataset.marginpct || "-";
 
-            // licence % on revenue (brand fee for this order)
             const licencePct = revenue ? (licence / revenue * 100) : 0;
 
+            // Gemiddelde kosten per product (over alle units in de order, nog NIET vermenigvuldigd met aantal)
+            let prodPerProduct    = "-";
+            let inboundPerProduct = "-";
+            let storagePerProduct = "-";
+            if (qty > 0) {
+                prodPerProduct    = euro(prod / qty);
+                inboundPerProduct = euro(inbound / qty);
+                storagePerProduct = euro(storage / qty);
+            }
+
+            // Outbound_cost_client (per klant) terugrekenen uit de allocatie:
+            // outbound_sum = (Outbound_cost_client * ORDER.Quantity) / N_client_year
+            // => Outbound_cost_client = outbound_sum * N_client_year / ORDER.Quantity
+            let outboundClientRate = null;
+            if (qty > 0 && opc > 0) {
+                outboundClientRate = outbound * opc / qty;
+            }
+
+            // simpele schaal voor bar: margin / revenue, capped tussen -1 en 1
+            let barRatio = 0;
+            if (revenue !== 0) {
+                barRatio = margin / revenue;
+            }
+            if (barRatio > 1) barRatio = 1;
+            if (barRatio < -1) barRatio = -1;
+            const barScale = (Math.abs(barRatio) * 100).toFixed(0);
+            const barColor = barRatio >= 0
+                ? "linear-gradient(90deg, #37c27f, #0b9151)"
+                : "linear-gradient(90deg, #f15c4f, #be2620)";
+
             panel.innerHTML = `
-                <h3>Order ${row.dataset.ordernr}</h3>
+                <h3>Calculations of the margin</h3>
 
-                <div class="block">
-                    <div class="block-title">Basic info</div>
-                    <strong>Date:</strong> ${row.dataset.date}<br>
-                    <strong>Revenue (Paid_price):</strong> ${euro(revenue)}<br>
-                    <strong>Net margin:</strong> ${euro(margin)} (${marginPct} %)
-                </div>
-
-                <div class="block">
-                    <div class="block-title">Formula</div>
-                    <div class="formula-line">
-                        M = Paid_price
-                        − Production costs
-                        − Inbound transport
-                        − Storage
-                        − Outbound transport
-                        − Licence fee
+                <!-- 0. Context badges -->
+                <div class="badge-row">
+                    <div class="badge">
+                        <span class="badge-label">Order</span>
+                        <span class="badge-value">${row.dataset.ordernr}</span>
+                    </div>
+                    <div class="badge">
+                        <span class="badge-label">Date</span>
+                        <span class="badge-value">${row.dataset.date}</span>
+                    </div>
+                    <div class="badge">
+                        <span class="badge-label">Units</span>
+                        <span class="badge-value">${qty || "-"}</span>
+                    </div>
+                    <div class="badge">
+                        <span class="badge-label">Client orders (year)</span>
+                        <span class="badge-value">${opc || "-"}</span>
                     </div>
                 </div>
 
+                <!-- 1. SUMMARY -->
                 <div class="block">
-                    <div class="block-title">Cost components (sums over all products in this order)</div>
-                    <ul style="margin:0 0 0 1.1rem; padding:0;">
-                        <li><strong>Production cost</strong> (factory cost of all units):
-                            ${euro(prod)}</li>
-                        <li><strong>Inbound transport</strong>
-                            (supplier → warehouse, all units in this order):
-                            ${euro(inbound)}</li>
-                        <li><strong>Storage cost</strong>
-                            (warehouse storage for all ordered units):
-                            ${euro(storage)}</li>
-                        <li><strong>Outbound transport</strong>
-                            (warehouse → client, client-specific average allocated
-                            to this order${opc ? `, based on ${opc} orders` : ""}):
-                            ${euro(outbound)}</li>
-                        <li><strong>Licence fee</strong>
-                            (brand fee on revenue, ~${licencePct.toFixed(2)} % of Paid_price):
-                            ${euro(licence)}</li>
-                    </ul>
+                    <div class="block-title"><span class="step">1.</span>Summary</div>
+                    <div class="card-section">
+                        <div class="summary-grid">
+                            <div>
+                                <div class="summary-item-label">Revenue (P)</div>
+                                <div class="summary-item-value">${euro(revenue)}</div>
+                            </div>
+                            <div>
+                                <div class="summary-item-label">Net margin (M)</div>
+                                <div class="summary-item-value">${euro(margin)}</div>
+                            </div>
+                            <div>
+                                <div class="summary-item-label">Margin % of P</div>
+                                <div class="summary-item-value">
+                                    ${marginPct !== "-" ? marginPct + " %" : "-"}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="highlight-bar">
+                            <div class="highlight-bar-inner"
+                                 style="width:${barScale}%; background:${barColor}; transform: scaleX(${Math.abs(barRatio)});">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- 2. FORMULE -->
                 <div class="block">
-                    <div class="block-title">Filled-in calculation</div>
-                    <div class="formula-line">
-                        M = ${euro(revenue)}
-                        − ${euro(prod)}
-                        − ${euro(inbound)}
-                        − ${euro(storage)}
-                        − ${euro(outbound)}
-                        − ${euro(licence)}
+                    <div class="block-title"><span class="step">2.</span>Formula</div>
+                    <div class="card-section formula-box">
+                        <div class="formula-line">Net margin per order:</div>
+                        <div class="formula-line">&nbsp;&nbsp;ORDER.Paid_price</div>
+                        <div class="formula-line">&nbsp;&nbsp;- Σ(Production_cost × ORDER_LINE.Quantity)</div>
+                        <div class="formula-line">&nbsp;&nbsp;- Σ(Inbound_transport_cost × ORDER_LINE.Quantity)</div>
+                        <div class="formula-line">&nbsp;&nbsp;- Σ(Storage_cost × ORDER_LINE.Quantity)</div>
+                        <div class="formula-line">
+                            &nbsp;&nbsp;- ((CLIENT_COST.Outbound_transport_cost × ORDER.Quantity)
+                            / number_of_orders_for_that_client_in_selected_year)
+                        </div>
+                        <div class="formula-line">
+                            &nbsp;&nbsp;- (License_fee_procent × ORDER.Paid_price)
+                        </div>
                     </div>
-                    <div class="formula-line" style="margin-top:0.25rem;">
-                        = <strong>${euro(margin)}</strong>
+                    <div class="formula-caption">
+                        ORDER_LINE.Quantity = quantity per product line ·
+                        ORDER.Quantity = total quantity in this order.
+                    </div>
+                </div>
+
+                <!-- 3. PAID PRICE -->
+                <div class="block">
+                    <div class="block-title"><span class="step">3.</span>Paid price for this order</div>
+                    <div class="card-section">
+                        Paid price (ORDER.Paid_price): <strong>${euro(revenue)}</strong><br>
+                        Net margin for this order: <strong>${euro(margin)}</strong>
+                        ${marginPct !== "-" ? ` (${marginPct} % of Paid_price)` : ""}
+                    </div>
+                </div>
+
+                <!-- 4. PER TYPE OF PRODUCTS -->
+                <div class="block">
+                    <div class="block-title"><span class="step">4.</span>Per type of products in the order</div>
+                    <div class="card-section">
+                        <ul class="component-list">
+                            <li>
+                                <strong>Production cost per product (average):</strong>
+                                ${prodPerProduct}
+                            </li>
+                            <li>
+                                <strong>Quantity (total units in this order):</strong>
+                                ${qty || "-"}
+                            </li>
+                            <li>
+                                <strong>Inbound transport cost per product (average):</strong>
+                                ${inboundPerProduct}
+                            </li>
+                            <li>
+                                <strong>Storage cost per product (average):</strong>
+                                ${storagePerProduct}
+                            </li>
+                        </ul>
+                        <div class="small-note">
+                            Note: these per-product values are averages and are
+                            <strong>not yet multiplied by quantity</strong>.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. PER ORDER -->
+                <div class="block">
+                    <div class="block-title"><span class="step">5.</span>Per order</div>
+                    <div class="card-section">
+                        <ul class="component-list">
+                            <li>
+                                <strong>Outbound transport cost (allocated to this order):</strong>
+                                ${euro(outbound)}
+                            </li>
+                            <li>
+                                <strong>Outbound transport cost per client (from cost table):</strong>
+                                ${
+                                    outboundClientRate !== null
+                                        ? euro(outboundClientRate)
+                                        : "-"
+                                }
+                            </li>
+                            <li>
+                                <strong>Quantity (ORDER.Quantity):</strong>
+                                ${qty || "-"}
+                            </li>
+                            <li>
+                                <strong>Amount of orders of that client in the selected year:</strong>
+                                ${opc || "-"}
+                            </li>
+                            <li>
+                                <strong>Licence fee for this order:</strong>
+                                ${euro(licence)} (≈ ${licencePct.toFixed(2)} % of Paid_price)
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 6. VOLLEDIG INGEVULDE BEREKENING -->
+                <div class="block">
+                    <div class="block-title"><span class="step">6.</span>Filled-in calculation</div>
+                    <div class="card-section">
+                        <div class="highlight-result">
+                            M = ${euro(revenue)}
+                            − ${euro(prod)}
+                            − ${euro(inbound)}
+                            − ${euro(storage)}
+                            − ${euro(outbound)}
+                            − ${euro(licence)}
+                        </div>
+                        <div class="highlight-result">
+                            = <strong>${euro(margin)}</strong>
+                        </div>
                     </div>
                 </div>
             `;
@@ -342,5 +608,3 @@
 
 </body>
 </html>
-
-

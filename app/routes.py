@@ -122,27 +122,16 @@ def margin_page():
     Net margin per order:
       ORDER.Paid_price
       - Σ(Production_cost * ORDER_LINE.Quantity)
-      - Σ(Inbound_transport_cost * ORDER.Quantity)
+      - Σ(Inbound_transport_cost * ORDER_LINE.Quantity)
       - Σ(Storage_cost * ORDER_LINE.Quantity)
-      - Σ((CLIENT_COST.Outbound_transport_cost * ORDER.Quantity)
-          / number_of_orders_for_that_client_in_selected_year)
+      - ((CLIENT_COST.Outbound_transport_cost * ORDER.Quantity)
+         / number_of_orders_for_that_client_in_selected_year)
       - (License_fee_procent * ORDER.Paid_price)
-
-    We return:
-      - avg_margin: average net margin per order in the selection
-      - sum_margin: total net margin of all orders in the selection
-      - margin_pct per order: order_margin / Paid_price * 100
-      - plus detail sums per order (prod / inbound / storage / outbound / licence)
-        for the tooltip.
     """
 
-    # -------------------------
-    # FILTER PARAMS
-    # -------------------------
     selected_year_str = request.args.get("year", "").strip()
     selected_country = request.args.get("country", "").strip()
     selected_client_id = request.args.get("client_id", type=int)
-
     selected_year = int(selected_year_str) if selected_year_str.isdigit() else None
 
     # -------------------------
@@ -173,13 +162,12 @@ def margin_page():
 
     clients = client_query.order_by(CLIENT.Name).all()
 
-    # Defaults for template
     avg_margin = None
     sum_margin = None
     order_count = 0
     orders_for_view: list[dict] = []
 
-    # If no year is selected yet -> only show filters
+    # Geen jaar gekozen → enkel filters tonen
     if not selected_year:
         return render_template(
             "margin.html",
@@ -219,20 +207,19 @@ def margin_page():
     storage = func.coalesce(PRODUCT_COST.Storage_cost, 0.0)
     outbound = func.coalesce(CLIENT_COST.Outbound_transport_cost, 0.0)
     license_pct = func.coalesce(BRAND.License_fee_procent, 0.0)
-    # Als DB 5 betekent 5%, dan hier: license_pct_effective = license_pct / 100.0
-    license_pct_effective = license_pct
+    license_pct_effective = license_pct  # hier ga je er van uit dat dit al als fractie komt (bv. 0.15 voor 15%)
 
-    # Revenue per order = Paid_price (coalesced)
+    # Revenue per order
     revenue_expr_order = func.coalesce(ORDER.Paid_price, 0.0)
 
-    # -------------------------
-    # MODE 1: CLIENT SELECTED  -> per-client view
-    # -------------------------
+    # --------------------------------------------------------
+    # MODE 1 — CLIENT SELECTED
+    # --------------------------------------------------------
     if selected_client_id:
         base_filters_client = list(base_filters_year_country)
         base_filters_client.append(ORDER.CLIENT_ID == selected_client_id)
 
-        # Number of orders for this client in this year (for outbound cost split)
+        # aantal orders voor deze client in dit jaar
         order_count_value = (
             db.session.query(func.count(func.distinct(ORDER.ORDER_NR)))
             .join(CLIENT, CLIENT.CLIENT_ID == ORDER.CLIENT_ID)
@@ -241,16 +228,12 @@ def margin_page():
         )
 
         if not order_count_value:
-            # No orders for this client/year
-            avg_margin = 0.0
-            sum_margin = 0.0
-            order_count = 0
             return render_template(
                 "margin.html",
-                avg_margin=avg_margin,
-                sum_margin=sum_margin,
-                order_count=order_count,
-                orders=orders_for_view,
+                avg_margin=0.0,
+                sum_margin=0.0,
+                order_count=0,
+                orders=[],
                 countries=countries,
                 clients=clients,
                 years=years,
@@ -261,12 +244,13 @@ def margin_page():
 
         orders_per_client_const = float(order_count_value)
 
-        # De detail-termen (elk in een aparte SUM), zodat we ze netjes kunnen tonen
+        # LET OP: inbound nu per ORDER_LINE.Quantity (per product), niet meer per ORDER.Quantity
         prod_sum_expr = func.sum(prod_cost * ORDER_LINE.Quantity)
-        inbound_sum_expr = func.sum(inbound * ORDER.Quantity)
+        inbound_sum_expr = func.sum(inbound * ORDER_LINE.Quantity)
         storage_sum_expr = func.sum(storage * ORDER_LINE.Quantity)
         outbound_sum_expr = func.sum((outbound * ORDER.Quantity) / orders_per_client_const)
         license_amount_expr = func.max(license_pct_effective) * revenue_expr_order
+        total_qty_expr = func.sum(ORDER_LINE.Quantity)
 
         order_margin_expr = (
             revenue_expr_order
@@ -288,6 +272,7 @@ def margin_page():
                 outbound_sum_expr.label("outbound_sum"),
                 license_amount_expr.label("license_amount"),
                 order_margin_expr.label("order_margin"),
+                total_qty_expr.label("total_quantity"),
             )
             .select_from(ORDER_LINE)
             .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
@@ -302,13 +287,12 @@ def margin_page():
         )
 
         per_order_rows = per_order_query.all()
-        orders_per_client_for_row = None  # we kennen het constant
 
-    # -------------------------
-    # MODE 2: NO CLIENT SELECTED -> all clients (optionally by country)
-    # -------------------------
+    # --------------------------------------------------------
+    # MODE 2 — NO CLIENT SELECTED
+    # --------------------------------------------------------
     else:
-        # Subquery: number of orders per client in this year/country selection
+        # subquery: aantal orders per client in dit jaar (en optioneel land)
         order_count_subq = (
             db.session.query(
                 ORDER.CLIENT_ID.label("CLIENT_ID"),
@@ -322,11 +306,13 @@ def margin_page():
 
         orders_per_client = func.nullif(order_count_subq.c.order_count, 0.0)
 
+        # ook hier: inbound per ORDER_LINE.Quantity
         prod_sum_expr = func.sum(prod_cost * ORDER_LINE.Quantity)
-        inbound_sum_expr = func.sum(inbound * ORDER.Quantity)
+        inbound_sum_expr = func.sum(inbound * ORDER_LINE.Quantity)
         storage_sum_expr = func.sum(storage * ORDER_LINE.Quantity)
         outbound_sum_expr = func.sum((outbound * ORDER.Quantity) / orders_per_client)
         license_amount_expr = func.max(license_pct_effective) * revenue_expr_order
+        total_qty_expr = func.sum(ORDER_LINE.Quantity)
 
         order_margin_expr = (
             revenue_expr_order
@@ -348,6 +334,7 @@ def margin_page():
                 outbound_sum_expr.label("outbound_sum"),
                 license_amount_expr.label("license_amount"),
                 order_margin_expr.label("order_margin"),
+                total_qty_expr.label("total_quantity"),
                 func.max(order_count_subq.c.order_count).label("orders_per_client"),
             )
             .select_from(ORDER_LINE)
@@ -364,21 +351,17 @@ def margin_page():
         )
 
         per_order_rows = per_order_query.all()
-        orders_per_client_const = None  # hier per order verschillend
 
     # -------------------------
     # GEEN ORDERS?
     # -------------------------
     if not per_order_rows:
-        avg_margin = 0.0
-        sum_margin = 0.0
-        order_count = 0
         return render_template(
             "margin.html",
-            avg_margin=avg_margin,
-            sum_margin=sum_margin,
-            order_count=order_count,
-            orders=orders_for_view,
+            avg_margin=0.0,
+            sum_margin=0.0,
+            order_count=0,
+            orders=[],
             countries=countries,
             clients=clients,
             years=years,
@@ -396,24 +379,23 @@ def margin_page():
     for r in per_order_rows:
         margin_value = float(r.order_margin or 0.0)
         revenue_value = float(r.revenue or 0.0)
+
         prod_sum = float(r.prod_sum or 0.0)
         inbound_sum = float(r.inbound_sum or 0.0)
         storage_sum = float(r.storage_sum or 0.0)
         outbound_sum = float(r.outbound_sum or 0.0)
         license_amount = float(r.license_amount or 0.0)
+        total_qty = float(r.total_quantity or 0.0)
 
         sum_margins += margin_value
-
         date_str = r.order_date.strftime("%Y-%m-%d") if r.order_date else ""
 
-        # margin % of revenue (Paid_price)
         margin_pct = None
         if revenue_value:
             margin_pct = round((margin_value / revenue_value) * 100.0, 2)
 
-        # aantal orders per client (voor tekst in tooltip)
         if selected_client_id:
-            opc = orders_per_client_const
+            opc = order_count_value
         else:
             opc = int(r.orders_per_client or 0) if hasattr(r, "orders_per_client") else 0
 
@@ -430,16 +412,12 @@ def margin_page():
                 "outbound_sum": round(outbound_sum, 2),
                 "license_amount": round(license_amount, 2),
                 "orders_per_client": opc,
+                "total_quantity": total_qty,
             }
         )
 
     order_count = len(per_order_rows)
-    if order_count:
-        avg_margin_value = sum_margins / order_count
-    else:
-        avg_margin_value = 0.0
-
-    avg_margin = round(avg_margin_value, 2)
+    avg_margin = round(sum_margins / order_count, 2)
     sum_margin = round(sum_margins, 2)
 
     return render_template(
@@ -455,6 +433,9 @@ def margin_page():
         selected_country=selected_country,
         selected_client_id=selected_client_id,
     )
+
+
+
 
 
 
