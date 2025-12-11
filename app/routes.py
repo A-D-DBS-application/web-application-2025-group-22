@@ -725,11 +725,23 @@ def orders():
 
 
 # -------------------------
-# FORECAST REVENUE (SES — beste voor startups)
+# FORECAST REVENUE (SEASONAL – 12 MAANDEN VOORUIT)
 # -------------------------
 @main.route("/forecast")
 def forecast_page():
-    from sqlalchemy import func
+    """
+    Seasonal revenue forecast per maand (12 maanden vooruit).
+
+    Stap 1: haal maandelijkse omzet uit ORDER (Paid_price, Order_date)
+    Stap 2: schat multiplicatieve seizoensfactoren per maand (jan–dec)
+            volgens de "quick and dirty" methode uit de slides:
+            - gemiddelde omzet per maand / totaal gemiddelde,
+            - daarna normaliseren zodat de 12 factoren gemiddeld 1 zijn.
+    Stap 3: deseasonaliseer de historische omzet en pas een lineaire trend
+            (regressie) toe op de deseasonaliseerde reeks.
+    Stap 4: gebruik trend + seizoensfactoren om de volgende 12 maanden
+            omzet te voorspellen.
+    """
 
     # 1. Revenue per maand ophalen (som van ORDER.Paid_price)
     results = (
@@ -749,59 +761,192 @@ def forecast_page():
             history_data=[],
             forecast_data=[],
             table_rows=[],
-            alpha_used=None,
+            method_name="Seizoensgebonden trend (te weinig data)",
+            season_length=12,
             method_info="Geen data beschikbaar om een forecast te maken.",
         )
 
-    # 2. Data omzetten naar Python-lijsten
-    labels = [row.month for row in results]
-    history_data = [float(row.revenue or 0.0) for row in results]
+    # 2. Data naar Python-lijsten: echte datums + omzet
+    months = []      # datetime.date van eerste dag van de maand
+    history_data = []  # historische omzet
+    for row in results:
+        if not row.month:
+            continue
+        dt = datetime.strptime(row.month, "%Y-%m").date()
+        months.append(dt)
+        history_data.append(float(row.revenue or 0.0))
 
-    # 3. Simple Exponential Smoothing (SES) zonder extra libraries
-    alpha = 0.4  # midden in jouw gewenste range 0.3–0.5
+    n = len(history_data)
+    if n < 3:
+        return render_template(
+            "forecast.html",
+            labels=[],
+            history_data=[],
+            forecast_data=[],
+            table_rows=[],
+            method_name="Seizoensgebonden trend (te weinig data)",
+            season_length=12,
+            method_info="Er zijn minder dan 3 maanden met omzet, dus geen betrouwbare forecast.",
+        )
 
-    forecast_data = []
-    level = None
+    total_revenue = sum(history_data)
+    if total_revenue <= 0:
+        return render_template(
+            "forecast.html",
+            labels=[],
+            history_data=[],
+            forecast_data=[],
+            table_rows=[],
+            method_name="Seizoensgebonden trend",
+            season_length=12,
+            method_info="Alle omzetwaarden zijn nul, dus er kan geen forecast gemaakt worden.",
+        )
 
-    for value in history_data:
-        if level is None:
-            # eerste maand: geen forecast, enkel initialisatie
-            forecast_data.append(None)
-            level = value
+    # --------------------------------------------------
+    # 3. Seizoensfactoren per maand (1..12)
+    #    "quick and dirty" uit de slides: gemiddelde per maand /
+    #    globale gemiddelde, daarna normaliseren zodat het
+    #    gemiddelde van de 12 factoren exact 1 is.
+    # --------------------------------------------------
+    overall_mean = total_revenue / n
+
+    values_by_month = {m: [] for m in range(1, 13)}
+    for dt, rev in zip(months, history_data):
+        values_by_month[dt.month].append(rev)
+
+    seasonal_factors = {}
+    for m in range(1, 13):
+        vals = values_by_month[m]
+        if vals:
+            seasonal_factors[m] = (sum(vals) / len(vals)) / overall_mean
         else:
-            # forecast voor huidige maand = vorige level
-            forecast_data.append(level)
-            # update level met SES-formule
-            level = alpha * value + (1 - alpha) * level
+            # geen observaties voor deze maand -> neutrale factor
+            seasonal_factors[m] = 1.0
 
-    # 4. Tabel-rows bouwen
+    # normaliseren zodat gemiddelde factor 1 is
+    sum_c = sum(seasonal_factors[m] for m in range(1, 13))
+    if sum_c == 0:
+        scale = 1.0
+    else:
+        scale = 12.0 / sum_c
+    for m in range(1, 13):
+        seasonal_factors[m] *= scale
+
+    # --------------------------------------------------
+    # 4. Deseasonaliseren + lineaire trend op deseasonalized data
+    # --------------------------------------------------
+    deseasonalized = []
+    for dt, rev in zip(months, history_data):
+        factor = seasonal_factors.get(dt.month, 1.0)
+        if factor == 0:
+            deseasonalized.append(0.0)
+        else:
+            deseasonalized.append(rev / factor)
+
+    # eenvoudige least-squares regressie: y = a + b * t, t = 1..n
+    t_vals = list(range(1, n + 1))
+    mean_t = sum(t_vals) / n
+    mean_y = sum(deseasonalized) / n
+
+    denom = sum((t - mean_t) ** 2 for t in t_vals)
+    if denom == 0:
+        # fallback: geen trend, enkel gemiddelde
+        b = 0.0
+        a = mean_y
+    else:
+        b = sum((t - mean_t) * (y - mean_y) for t, y in zip(t_vals, deseasonalized)) / denom
+        a = mean_y - b * mean_t
+
+    # fitted waarden voor de historische periode (optioneel in de tabel)
+    fitted_history = []
+    for i, dt in enumerate(months, start=1):
+        y_trend = a + b * i
+        fitted = y_trend * seasonal_factors.get(dt.month, 1.0)
+        fitted_history.append(fitted)
+
+    # --------------------------------------------------
+    # 5. 12 maanden vooruit voorspellen
+    # --------------------------------------------------
+    def add_months(d, months_to_add):
+        year = d.year + (d.month - 1 + months_to_add) // 12
+        month = (d.month - 1 + months_to_add) % 12 + 1
+        return date(year, month, 1)
+
+    forecast_horizon = 12
+    last_month_date = months[-1]
+
+    future_months = []
+    future_forecast = []
+
+    for k in range(1, forecast_horizon + 1):
+        future_date = add_months(last_month_date, k)
+        t_future = n + k
+        y_trend_future = a + b * t_future
+        factor = seasonal_factors.get(future_date.month, 1.0)
+        forecast_value = max(0.0, y_trend_future * factor)  # geen negatieve omzet
+
+        future_months.append(future_date)
+        future_forecast.append(forecast_value)
+
+    # --------------------------------------------------
+    # 6. Data voor grafiek en tabel klaarzetten
+    # --------------------------------------------------
+    labels_history = [d.strftime("%Y-%m") for d in months]
+    labels_future = [d.strftime("%Y-%m") for d in future_months]
+
+    labels = labels_history + labels_future
+
+    # historische lijn: echte omzet + None voor de toekomst
+    history_series = history_data + [None] * forecast_horizon
+
+    # forecast-lijn: None voor historie, voorspelling voor toekomst
+    forecast_series = [None] * n + future_forecast
+
+    # tabel opbouwen
     table_rows = []
-    for month, actual, fc in zip(labels, history_data, forecast_data):
+
+    # bestaande maanden
+    for label, actual, fit in zip(labels_history, history_data, fitted_history):
         table_rows.append(
             {
-                "month": month,
+                "month": label,
                 "historical": round(actual, 2),
-                "forecast": None if fc is None else round(fc, 2),
+                # hier tonen we de in-sample fit als "Forecast" of laten leeg
+                "forecast": None,
+            }
+        )
+
+    # toekomstige maanden
+    for label, fc in zip(labels_future, future_forecast):
+        table_rows.append(
+            {
+                "month": label,
+                "historical": None,
+                "forecast": round(fc, 2),
             }
         )
 
     method_info = (
-        "We gebruiken Simple Exponential Smoothing (zonder seasonality) "
-        "omdat de start-up nog geen stabiele seizoenspatronen heeft. "
-        "Een α-waarde rond 0.3–0.5 laat het model snel genoeg reageren "
-        "op veranderende vraag in jonge, onstabiele datasets."
+        "Deze forecast gebruikt een multiplicatief seizoensmodel met een periode "
+        "van 12 maanden. Eerst worden maandelijkse seizoensfactoren geschat op basis "
+        "van de historische omzet (gemiddelde per maand t.o.v. het totale gemiddelde). "
+        "Daarna wordt de omzet 'deseasonalized' en wordt een lineaire trend op deze "
+        "deseasonalized reeks gefit. Tot slot worden de volgende 12 maanden "
+        "voorspeld door de trend te extrapoleren en opnieuw met de passende "
+        "seizoensfactor te vermenigvuldigen. Omdat er slechts ongeveer anderhalf jaar "
+        "aan data is, moeten de resultaten voorzichtig geïnterpreteerd worden."
     )
 
     return render_template(
         "forecast.html",
         labels=labels,
-        history_data=history_data,
-        forecast_data=forecast_data,
+        history_data=history_series,
+        forecast_data=forecast_series,
         table_rows=table_rows,
-        alpha_used=alpha,
+        method_name="Seizoensgebonden trend + maandindexen",
+        season_length=12,
         method_info=method_info,
     )
-
 
 # -------------------------
 # COSTS PAGE

@@ -1,75 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <title>Forecast - LiQ</title>
 
-    <!-- Chart.js voor de grafiek -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- We hergebruiken je home-styling voor de container -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
-
-    <style>
-        .info-box {
-            background: #f7e3cc;
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin: 15px 0 25px 0;
-            text-align: left;
-        }
-
-        .forecast-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 25px;
-        }
-
-        .forecast-table th,
-        .forecast-table td {
-            border-bottom: 1px solid #e0d0bd;
-            padding: 8px 10px;
-            text-align: center;
-        }
-
-        .forecast-table th {
-            background: #f2e4d4;
-            font-weight: 600;
-        }
-    </style>
+    <!-- Forecast gebruikt enkel forecast.css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='forecast.css') }}">
 </head>
 
 <body>
-<div class="home-container">
 
-    <img src="{{ url_for('static', filename='logo.svg') }}" class="logo">
+    <img src="{{ url_for('static', filename='logo.svg') }}"
+         class="logo"
+         style="width:160px; margin:20px auto; display:block;">
 
-    <h1>Revenue Forecast</h1>
+    <h1 style="text-align:center; color:#6b381f;">Revenue Forecast (Seizoensgebonden)</h1>
 
     <div class="info-box">
-        <strong>Methode:</strong> Simple Exponential Smoothing (SES)<br>
-        <strong>Used α:</strong> {{ alpha_used }}<br><br>
+        <strong>Methode:</strong> {{ method_name }}<br>
+        <strong>Seizoensperiode:</strong> {{ season_length }} maanden<br><br>
         {{ method_info }}
     </div>
 
     {% if labels %}
-        <h2 style="margin: 20px 0 10px 0;">forcast table</h2>
-
-        <!-- GRAFIEK -->
-        <canvas id="forecastChart" style="width:100%; max-height:350px; margin-top: 50px;"></canvas>
+        <div class="chart-wrapper">
+            <canvas id="forecastChart"></canvas>
+        </div>
 
         <script>
-            // prettier-ignore
             const labels = JSON.parse(`{{ labels | tojson | safe }}`);
-
-            // prettier-ignore
             const historyData = JSON.parse(`{{ history_data | tojson | safe }}`);
-
-            // prettier-ignore
             const forecastData = JSON.parse(`{{ forecast_data | tojson | safe }}`);
 
-    const ctx = document.getElementById('forecastChart');
-
+            const ctx = document.getElementById('forecastChart');
 
             new Chart(ctx, {
                 type: 'line',
@@ -80,47 +45,52 @@
                             label: 'Werkelijke Revenue',
                             data: historyData,
                             borderColor: 'rgba(120, 60, 30, 1)',
-                            backgroundColor: 'rgba(120, 60, 30, 0.2)',
+                            backgroundColor: 'rgba(120, 60, 30, 0.15)',
                             tension: 0.3,
-                            spanGaps: true
+                            pointRadius: 3
                         },
-                            {
-                            label: 'Forecast (SES)',
+                        {
+                            label: 'Forecast (seizoensgebonden, 12 maanden vooruit)',
                             data: forecastData,
                             borderColor: 'rgba(210, 120, 60, 1)',
-                            borderDash: [5, 5],
-                            backgroundColor: 'rgba(210, 120, 60, 0.2)',
+                            borderDash: [6, 6],
+                            backgroundColor: 'rgba(210, 120, 60, 0.15)',
                             tension: 0.3,
-                            spanGaps: true
+                            pointRadius: 3
                         }
                     ]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: false
-                        }
+                        y: { beginAtZero: false }
                     }
                 }
             });
         </script>
 
-        <h2 style="margin-top:35px;">Forecast Table</h2>
+        <h2 style="text-align:center; margin-top: 40px;">Forecast Tabel</h2>
 
         <table class="forecast-table">
             <thead>
                 <tr>
-                    <th>Month</th>
-                    <th>Weekly Revenue</th>
+                    <th>Maand</th>
+                    <th>Werkelijke Revenue</th>
                     <th>Forecast</th>
                 </tr>
             </thead>
             <tbody>
-            {% for row in table_rows %}
+                {% for row in table_rows %}
                 <tr>
                     <td>{{ row.month }}</td>
-                    <td>{{ row.historical }}</td>
+                    <td>
+                        {% if row.historical is not none %}
+                            {{ row.historical }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
                     <td>
                         {% if row.forecast is not none %}
                             {{ row.forecast }}
@@ -129,19 +99,17 @@
                         {% endif %}
                     </td>
                 </tr>
-            {% endfor %}
+                {% endfor %}
             </tbody>
         </table>
-    {% else %}
-        <p>No data is available yet to show a forecast.</p>
+
     {% endif %}
 
-    <br>
-    <button class="back-button" onclick="window.location.href='/home'">Back</button>
+    <button class="back-button" onclick="window.location.href='/home'">Terug</button>
 
-</div>
 </body>
 </html>
+
 
 
 

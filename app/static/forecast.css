@@ -1,0 +1,95 @@
+/* ------------------------------
+   ALGEMENE PAGINA-STIJL
+------------------------------- */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #faf4ef;
+    margin: 0;
+    padding: 0;
+    color: #4a2e1e;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #6b381f;
+    margin-top: 20px;
+}
+
+/* ------------------------------
+   INFO-BOX (uitleg methode)
+------------------------------- */
+.info-box {
+    width: 80%;
+    margin: 20px auto;
+    background: #fff8f1;
+    border-left: 6px solid #c28a5b;
+    padding: 20px;
+    border-radius: 8px;
+    color: #4a2e1e;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    line-height: 1.5;
+}
+
+/* ------------------------------
+   GRAFIEK-CONTAINER
+------------------------------- */
+.chart-wrapper {
+    width: 90%;
+    height: 550px;   /* genoeg hoogte zodat Y-as niet plat is */
+    margin: 30px auto;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+/* ------------------------------
+   FORECAST TABEL
+------------------------------- */
+.forecast-table {
+    width: 80%;
+    margin: 40px auto;
+    border-collapse: collapse;
+    font-size: 15px;
+    background: white;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.forecast-table th {
+    background: #6b381f;
+    color: white;
+    padding: 12px;
+}
+
+.forecast-table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.forecast-table tr:nth-child(even) {
+    background: #f7eee7;
+}
+
+/* ------------------------------
+   TERUG KNOP
+------------------------------- */
+.back-button {
+    display: block;
+    width: 180px;
+    margin: 40px auto;
+    padding: 12px;
+    background: #6b381f;
+    color: white;
+    text-align: center;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.back-button:hover {
+    background: #8a512d;
+}
