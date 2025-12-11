@@ -776,6 +776,22 @@ def forecast_page():
         months.append(dt)
         history_data.append(float(row.revenue or 0.0))
 
+    # ---------------------------------------------------------
+    # FIX: verwijder laatste maand als deze onvolledig is
+    # ---------------------------------------------------------
+
+    # threshold voor incomplete maand
+    MIN_REVENUE_FOR_COMPLETE_MONTH = 20000
+
+    last_revenue = history_data[-1]
+
+    if last_revenue < MIN_REVENUE_FOR_COMPLETE_MONTH:
+        months = months[:-1]
+        history_data = history_data[:-1]
+
+
+
+
     n = len(history_data)
     if n < 3:
         return render_template(
