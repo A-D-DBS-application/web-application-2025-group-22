@@ -17,7 +17,46 @@ h1, h2 {
 }
 
 /* ------------------------------
-   INFO-BOX (uitleg methode)
+   TOP BAR (logo + back button)
+------------------------------- */
+
+.top-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    /* Nieuw toegevoegd ↓ */
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 20px;
+}
+
+
+/* Klein logo linksboven */
+.logo-small {
+    width: 150px;
+}
+
+/* Back-knop rechtsboven */
+.back-button {
+    padding: 10px 25px;
+    background: #6b381f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.back-button:hover {
+    background: #8a512d;
+}
+
+/* ------------------------------
+   INFO-BOX
 ------------------------------- */
 .info-box {
     width: 80%;
@@ -36,7 +75,7 @@ h1, h2 {
 ------------------------------- */
 .chart-wrapper {
     width: 90%;
-    height: 550px;   /* genoeg hoogte zodat Y-as niet plat is */
+    height: 550px;
     margin: 30px auto;
     background: white;
     border-radius: 10px;
@@ -72,24 +111,3 @@ h1, h2 {
     background: #f7eee7;
 }
 
-/* ------------------------------
-   TERUG KNOP
-------------------------------- */
-.back-button {
-    display: block;
-    width: 180px;
-    margin: 40px auto;
-    padding: 12px;
-    background: #6b381f;
-    color: white;
-    text-align: center;
-    font-size: 16px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.back-button:hover {
-    background: #8a512d;
-}
