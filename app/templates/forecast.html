@@ -1,28 +1,29 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Forecast - LiQ</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Forecast gebruikt enkel forecast.css -->
+    <!-- Forecast page stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='forecast.css') }}">
 </head>
 
 <body>
 
-    <!-- Top bar met logo en back button -->
+    <!-- Top bar with logo and back button -->
     <div class="top-bar">
         <img src="{{ url_for('static', filename='logo.svg') }}" class="logo-small">
         <button class="back-button" onclick="window.location.href='/home'">Back</button>
     </div>
 
-    <h1 style="text-align:center; color:#6b381f;">Revenue Forecast (Seizoensgebonden)</h1>
+    <h1 style="text-align:center; color:#6b381f;">Revenue Forecast (Seasonal Model)</h1>
 
     <div class="info-box">
-        <strong>Methode:</strong> {{ method_name }}<br>
-        <strong>Seizoensperiode:</strong> {{ season_length }} maanden<br><br>
+        <strong>Method:</strong> {{ method_name }}<br>
+        <strong>Season Length:</strong> {{ season_length }} months<br><br>
+
         {{ method_info }}
     </div>
 
@@ -44,7 +45,7 @@
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Werkelijke Revenue',
+                            label: 'Actual Revenue',
                             data: historyData,
                             borderColor: 'rgba(120, 60, 30, 1)',
                             backgroundColor: 'rgba(120, 60, 30, 0.15)',
@@ -53,7 +54,7 @@
                             spanGaps: true
                         },
                         {
-                            label: 'Forecast (seizoensgebonden, 12 maanden vooruit)',
+                            label: 'Forecast (seasonal, 12 months ahead)',
                             data: forecastData,
                             borderColor: 'rgba(210, 120, 60, 1)',
                             borderDash: [6, 6],
@@ -74,13 +75,13 @@
             });
         </script>
 
-        <h2 style="text-align:center; margin-top: 40px;">Forecast Tabel</h2>
+        <h2 style="text-align:center; margin-top: 40px;">Forecast Table</h2>
 
         <table class="forecast-table">
             <thead>
                 <tr>
-                    <th>Maand</th>
-                    <th>Werkelijke Revenue</th>
+                    <th>Month</th>
+                    <th>Actual Revenue</th>
                     <th>Forecast</th>
                 </tr>
             </thead>
@@ -110,6 +111,7 @@
 
 </body>
 </html>
+
 
 
 

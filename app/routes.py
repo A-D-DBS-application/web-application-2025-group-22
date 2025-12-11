@@ -943,14 +943,14 @@ def forecast_page():
         )
 
     method_info = (
-        "Deze forecast gebruikt een multiplicatief seizoensmodel met een periode "
-        "van 12 maanden. Eerst worden maandelijkse seizoensfactoren geschat op basis "
-        "van de historische omzet (gemiddelde per maand t.o.v. het totale gemiddelde). "
-        "Daarna wordt de omzet 'deseasonalized' en wordt een lineaire trend op deze "
-        "deseasonalized reeks gefit. Tot slot worden de volgende 12 maanden "
-        "voorspeld door de trend te extrapoleren en opnieuw met de passende "
-        "seizoensfactor te vermenigvuldigen. Omdat er slechts ongeveer anderhalf jaar "
-        "aan data is, moeten de resultaten voorzichtig geïnterpreteerd worden."
+        "This forecast uses a multiplicative seasonal model with a 12-month period. "
+        "Monthly seasonal factors are first estimated based on historical revenue "
+        "(average per month compared to the overall mean). The revenue series is then "
+        "deseasonalized, and a linear trend is fitted to the deseasonalized data. "
+        "Finally, the next 12 months are forecasted by extrapolating the trend and "
+        "multiplying it again by the appropriate seasonal factor. Because only about "
+        "one and a half years of data are available, results should be interpreted "
+        "with caution."
     )
 
     return render_template(
@@ -959,10 +959,11 @@ def forecast_page():
         history_data=history_series,
         forecast_data=forecast_series,
         table_rows=table_rows,
-        method_name="Seizoensgebonden trend + maandindexen",
+        method_name="Seasonal trend + monthly indexes",
         season_length=12,
         method_info=method_info,
     )
+
 
 # -------------------------
 # COSTS PAGE
