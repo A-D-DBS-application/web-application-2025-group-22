@@ -435,10 +435,6 @@
                         <span class="badge-label">Units</span>
                         <span class="badge-value">${qty || "-"}</span>
                     </div>
-                    <div class="badge">
-                        <span class="badge-label">Client orders (year)</span>
-                        <span class="badge-value">${opc || "-"}</span>
-                    </div>
                 </div>
 
                 <!-- 1. VARIABLES -->
@@ -485,10 +481,6 @@
                         <div class="formula-line">
                             − {{"${"}}euro(outbound){{"}"}} − {{"${"}}euro(licence){{"}"}} = <strong>{{"${"}}euro(margin){{"}"}}</strong>
                             ${marginPct !== "-" ? ` (${marginPct} % of Paid price)` : ""}                        </div>
-                    </div>
-                    <div class="formula-caption">
-                        The client outbound share is this client’s yearly outbound cost
-                        divided over their orders; the licence fee uses the percentage on the paid price.
                     </div>
                 </div>
 
