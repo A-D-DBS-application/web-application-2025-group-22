@@ -675,6 +675,7 @@ def orders():
             SUPPLIER.Name.label("SupplierName"),
             PRODUCT.Name.label("ProductName"),
             ORDER_LINE.Quantity,
+            ORDER_LINE.Price_paid,
             PRODUCT.Currency.label("Currency"),
             ORDER.Order_date,
             ORDER.Paid_price.label("OrderPaidPrice")

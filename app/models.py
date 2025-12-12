@@ -150,6 +150,7 @@ class ORDER_LINE(db.Model):
 
     # aantal van dit product in deze order
     Quantity = db.Column(db.Integer)
+    Price_paid = db.Column(db.Float)
 
 
     def __repr__(self):
