@@ -121,16 +121,15 @@ def margin_page():
     NET MARGIN ANALYSIS
 
     Revenue per order:
-      - ORDER.Paid_price
+      - Σ(ORDER_LINE.Price_paid)
 
     Net margin per order:
-      ORDER.Paid_price
-      - Σ(Production_cost * ORDER_LINE.Quantity)
-      - Σ(Inbound_transport_cost * ORDER_LINE.Quantity)
-      - Σ(Storage_cost * ORDER_LINE.Quantity)
-      - ((CLIENT.Outbound_transport_cost * ORDER.Quantity)
-         / number_of_orders_for_that_client_in_selected_year)
-      - (License_fee_procent * ORDER.Paid_price)
+      Σ(ORDER_LINE.Price_paid
+        - Production_cost * ORDER_LINE.Quantity
+        - Inbound_transport_cost * ORDER_LINE.Quantity
+        - Storage_cost * ORDER_LINE.Quantity
+        - CLIENT.Outbound_transport_cost * ORDER_LINE.Quantity
+        - License_fee_procent * ORDER_LINE.Price_paid)
     """
 
     selected_year_str = request.args.get("year", "").strip()
@@ -213,8 +212,9 @@ def margin_page():
     license_pct = func.coalesce(BRAND.License_fee_procent, 0.0)
     license_pct_effective = license_pct  # hier ga je er van uit dat dit al als fractie komt (bv. 0.15 voor 15%)
 
-    # Revenue per order
-    revenue_expr_order = func.coalesce(ORDER.Paid_price, 0.0)
+    # Revenue per order (sum of all order lines)
+    line_revenue = func.coalesce(ORDER_LINE.Price_paid, 0.0)
+    revenue_expr_order = func.sum(line_revenue)
 
     # --------------------------------------------------------
     # MODE 1 — CLIENT SELECTED
@@ -246,14 +246,13 @@ def margin_page():
                 selected_client_id=selected_client_id,
             )
 
-        orders_per_client_const = float(order_count_value)
+        # Cost and margin terms per order, summed over all lines
 
-        # LET OP: inbound nu per ORDER_LINE.Quantity (per product), niet meer per ORDER.Quantity
         prod_sum_expr = func.sum(prod_cost * ORDER_LINE.Quantity)
         inbound_sum_expr = func.sum(inbound * ORDER_LINE.Quantity)
         storage_sum_expr = func.sum(storage * ORDER_LINE.Quantity)
-        outbound_sum_expr = func.sum((outbound * ORDER.Quantity) / orders_per_client_const)
-        license_amount_expr = func.max(license_pct_effective) * revenue_expr_order
+        outbound_sum_expr = func.sum(outbound * ORDER_LINE.Quantity)
+        license_amount_expr = func.sum(license_pct_effective * line_revenue)
         total_qty_expr = func.sum(ORDER_LINE.Quantity)
 
         order_margin_expr = (
@@ -285,7 +284,7 @@ def margin_page():
             .join(BRAND, PRODUCT.BRAND_ID == BRAND.BRAND_ID)
             .join(CLIENT, ORDER.CLIENT_ID == CLIENT.CLIENT_ID)
             .filter(*base_filters_client)
-            .group_by(ORDER.ORDER_NR, ORDER.Order_date, ORDER.Paid_price)
+            .group_by(ORDER.ORDER_NR, ORDER.Order_date)
             .order_by(ORDER.Order_date.asc())
         )
 
@@ -313,8 +312,8 @@ def margin_page():
         prod_sum_expr = func.sum(prod_cost * ORDER_LINE.Quantity)
         inbound_sum_expr = func.sum(inbound * ORDER_LINE.Quantity)
         storage_sum_expr = func.sum(storage * ORDER_LINE.Quantity)
-        outbound_sum_expr = func.sum((outbound * ORDER.Quantity) / orders_per_client)
-        license_amount_expr = func.max(license_pct_effective) * revenue_expr_order
+        outbound_sum_expr = func.sum(outbound * ORDER_LINE.Quantity)
+        license_amount_expr = func.sum(license_pct_effective * line_revenue)
         total_qty_expr = func.sum(ORDER_LINE.Quantity)
 
         order_margin_expr = (
@@ -348,7 +347,7 @@ def margin_page():
             .join(CLIENT, ORDER.CLIENT_ID == CLIENT.CLIENT_ID)
             .outerjoin(order_count_subq, order_count_subq.c.CLIENT_ID == ORDER.CLIENT_ID)
             .filter(*base_filters_year_country)
-            .group_by(ORDER.ORDER_NR, ORDER.Order_date, ORDER.Paid_price)
+            .group_by(ORDER.ORDER_NR, ORDER.Order_date)
             .order_by(ORDER.Order_date.asc())
         )
 
