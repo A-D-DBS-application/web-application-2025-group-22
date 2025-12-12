@@ -228,6 +228,38 @@
             flex: 1 1 auto;
             min-width: 0;
         }
+
+        .average-banner {
+            background: linear-gradient(135deg, #f7f1ff 0%, #eef5ff 100%);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 16px;
+            padding: 1.2rem 1.6rem;
+            margin: 1rem auto 1.3rem;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .average-label {
+            font-size: 0.95rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #5b4d83;
+            margin-bottom: 0.35rem;
+            font-weight: 700;
+        }
+
+        .average-metric {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #2f1f55;
+            line-height: 1.1;
+        }
+
+        .average-context {
+            margin-top: 0.25rem;
+            font-size: 1rem;
+            color: #4f4f4f;
+        }
     </style>
 </head>
 <body>
@@ -243,9 +275,10 @@
     </h1>
 
     <p class="subtitle">
-        Net margin is calculated per order as the sum of each order line's paid price
-        minus its production, transport, storage and licence costs. Hover an order row
-        to see a detailed explanation of how its margin is built up.
+        The net margin is calculated by subtracting all the costs from the revenue and
+        representing it as a percentage of the total price paid for the specific order
+        line. An order line is the share of one specific product in an order. Hover over
+        the table to see more details.
     </p>
 
     <!-- FILTERS -->
@@ -291,6 +324,15 @@
 
     <div class="margin-result">
         {% if avg_margin is not none and selected_year %}
+            <div class="average-banner">
+                <div class="average-label">Average of all shown margins</div>
+                <div class="average-metric">{{ avg_margin }} €</div>
+                <div class="average-context">Based on {{ order_count }} orders in the applied filters</div>
+                {% if avg_margin_pct is not none %}
+                    <div class="average-context">Average margin % of revenue: {{ avg_margin_pct }} %</div>
+                {% endif %}
+            </div>
+
             <h2>Net margin summary ({{ selected_year }})</h2>
 
             <p class="margin-value">

@@ -166,6 +166,7 @@ def margin_page():
     clients = client_query.order_by(CLIENT.Name).all()
 
     avg_margin = None
+    avg_margin_pct = None
     sum_margin = None
     order_count = 0
     orders_for_view: list[dict] = []
@@ -175,6 +176,7 @@ def margin_page():
         return render_template(
             "margin.html",
             avg_margin=avg_margin,
+            avg_margin_pct=avg_margin_pct,
             sum_margin=sum_margin,
             order_count=order_count,
             orders=orders_for_view,
@@ -235,6 +237,7 @@ def margin_page():
             return render_template(
                 "margin.html",
                 avg_margin=0.0,
+                avg_margin_pct=0.0,
                 sum_margin=0.0,
                 order_count=0,
                 orders=[],
@@ -360,6 +363,7 @@ def margin_page():
         return render_template(
             "margin.html",
             avg_margin=0.0,
+            avg_margin_pct=0.0,
             sum_margin=0.0,
             order_count=0,
             orders=[],
@@ -375,6 +379,8 @@ def margin_page():
     # PREP DATA FOR TEMPLATE
     # -------------------------
     sum_margins = 0.0
+    sum_margin_pct = 0.0
+    margin_pct_count = 0
     orders_for_view = []
 
     for r in per_order_rows:
@@ -394,6 +400,8 @@ def margin_page():
         margin_pct = None
         if revenue_value:
             margin_pct = round((margin_value / revenue_value) * 100.0, 2)
+            sum_margin_pct += margin_pct
+            margin_pct_count += 1
 
         if selected_client_id:
             opc = order_count_value
@@ -419,11 +427,15 @@ def margin_page():
 
     order_count = len(per_order_rows)
     avg_margin = round(sum_margins / order_count, 2)
+    avg_margin_pct = None
+    if margin_pct_count:
+        avg_margin_pct = round(sum_margin_pct / margin_pct_count, 2)
     sum_margin = round(sum_margins, 2)
 
     return render_template(
         "margin.html",
         avg_margin=avg_margin,
+        avg_margin_pct=avg_margin_pct,
         sum_margin=sum_margin,
         order_count=order_count,
         orders=orders_for_view,
