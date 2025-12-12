@@ -249,14 +249,20 @@
         }
 
         .average-metric {
-            font-size: 3rem;
+            font-size: 3.75rem;
             font-weight: 900;
             color: #2f1f55;
-            line-height: 1.1;
+            line-height: 1.05;
+        }
+
+        .average-subtext {
+            font-size: 1.05rem;
+            color: #4f4f4f;
+            margin-top: 0.15rem;
         }
 
         .average-context {
-            margin-top: 0.25rem;
+            margin-top: 0.45rem;
             font-size: 1rem;
             color: #4f4f4f;
         }
@@ -326,11 +332,15 @@
         {% if avg_margin is not none and selected_year %}
             <div class="average-banner">
                 <div class="average-label">Average of all shown margins</div>
-                <div class="average-metric">{{ avg_margin }} €</div>
-                <div class="average-context">Based on {{ order_count }} orders in the applied filters</div>
                 {% if avg_margin_pct is not none %}
-                    <div class="average-context">Average margin % of revenue: {{ avg_margin_pct }} %</div>
+                    <div class="average-metric">{{ avg_margin_pct }}%</div>
+                    <div class="average-subtext">Mean margin percentage across filtered orders</div>
+                {% else %}
+                    <div class="average-metric">–</div>
+                    <div class="average-subtext">No margin percentages available</div>
                 {% endif %}
+                <div class="average-context">Based on {{ order_count }} orders in the applied filters</div>
+                <div class="average-context">Average net margin per order: {{ avg_margin }} €</div>
             </div>
 
             <h2>Net margin summary ({{ selected_year }})</h2>
