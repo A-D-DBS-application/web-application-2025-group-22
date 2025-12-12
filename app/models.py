@@ -93,7 +93,6 @@ class PRODUCT(db.Model):
     PRODUCT_ID = db.Column(db.Integer, primary_key=True)
     BRAND_ID = db.Column(db.Integer, db.ForeignKey('BRAND.BRAND_ID'))
     Name = db.Column(db.String)
-    Sell_price_per_product = db.Column(db.Float)
     Currency = db.Column(db.String)
     SUPPLIER_ID = db.Column(db.Integer, db.ForeignKey('SUPPLIER.SUPPLIER_ID'))
 

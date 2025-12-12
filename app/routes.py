@@ -678,7 +678,6 @@ def orders():
             SUPPLIER.Name.label("SupplierName"),
             PRODUCT.Name.label("ProductName"),
             ORDER_LINE.Quantity,
-            PRODUCT.Sell_price_per_product.label("Unit_price"),
             PRODUCT.Currency.label("Currency"),
             ORDER.Order_date,
             ORDER.Paid_price.label("OrderPaidPrice")
@@ -712,10 +711,6 @@ def orders():
         query = query.order_by(ORDER.Order_date.asc())
     elif sort == "date-desc":
         query = query.order_by(ORDER.Order_date.desc())
-    elif sort == "price-asc":
-        query = query.order_by(PRODUCT.Sell_price_per_product.asc())
-    elif sort == "price-desc":
-        query = query.order_by(PRODUCT.Sell_price_per_product.desc())
     else:
         query = query.order_by(ORDER_LINE.ORDER_LINE_NR.asc())
 
@@ -1074,16 +1069,10 @@ def add_record_product():
     name = request.form.get("name")
     brand_id = request.form.get("brand_id", type=int)
     supplier_id = request.form.get("supplier_id", type=int)
-    sell_price = request.form.get("sell_price")
     currency = request.form.get("currency")
 
     if not name or not brand_id or not supplier_id:
         return redirect(url_for("main.add_records_page"))
-
-    try:
-        sell_price_value = float(sell_price) if sell_price else 0.0
-    except ValueError:
-        sell_price_value = 0.0
 
     if not BRAND.query.get(brand_id) or not SUPPLIER.query.get(supplier_id):
         return redirect(url_for("main.add_records_page"))
@@ -1092,7 +1081,6 @@ def add_record_product():
         Name=name,
         BRAND_ID=brand_id,
         SUPPLIER_ID=supplier_id,
-        Sell_price_per_product=sell_price_value,
         Currency=currency or "EUR",
     )
     db.session.add(new_product)
