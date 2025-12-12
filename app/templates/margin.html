@@ -409,34 +409,14 @@
             const licencePct = revenue ? (licence / revenue * 100) : 0;
 
             // Gemiddelde kosten per product (over alle units in de order, nog NIET vermenigvuldigd met aantal)
-            let prodPerProduct    = "-";
             let inboundPerProduct = "-";
             let storagePerProduct = "-";
+            let outboundPerProduct = "-";
             if (qty > 0) {
-                prodPerProduct    = euro(prod / qty);
-                inboundPerProduct = euro(inbound / qty);
-                storagePerProduct = euro(storage / qty);
+                inboundPerProduct  = euro(inbound / qty);
+                storagePerProduct  = euro(storage / qty);
+                outboundPerProduct = euro(outbound / qty);
             }
-
-            // Outbound_cost_client (per klant) terugrekenen uit de allocatie:
-            // outbound_sum = (Outbound_cost_client * ORDER.Quantity) / N_client_year
-            // => Outbound_cost_client = outbound_sum * N_client_year / ORDER.Quantity
-            let outboundClientRate = null;
-            if (qty > 0 && opc > 0) {
-                outboundClientRate = outbound * opc / qty;
-            }
-
-            // simpele schaal voor bar: margin / revenue, capped tussen -1 en 1
-            let barRatio = 0;
-            if (revenue !== 0) {
-                barRatio = margin / revenue;
-            }
-            if (barRatio > 1) barRatio = 1;
-            if (barRatio < -1) barRatio = -1;
-            const barScale = (Math.abs(barRatio) * 100).toFixed(0);
-            const barColor = barRatio >= 0
-                ? "linear-gradient(90deg, #37c27f, #0b9151)"
-                : "linear-gradient(90deg, #f15c4f, #be2620)";
 
             panel.innerHTML = `
                 <h3>Calculations of the margin</h3>
@@ -461,146 +441,58 @@
                     </div>
                 </div>
 
-                <!-- 1. SUMMARY -->
+                <!-- 1. VARIABLES -->
                 <div class="block">
-                    <div class="block-title"><span class="step">1.</span>Summary</div>
+                    <div class="block-title"><span class="step">1.</span>Variables</div>
                     <div class="card-section">
-                        <div class="summary-grid">
-                            <div>
-                                <div class="summary-item-label">Revenue (P)</div>
-                                <div class="summary-item-value">${euro(revenue)}</div>
-                            </div>
-                            <div>
-                                <div class="summary-item-label">Net margin (M)</div>
-                                <div class="summary-item-value">${euro(margin)}</div>
-                            </div>
-                            <div>
-                                <div class="summary-item-label">Margin % of P</div>
-                                <div class="summary-item-value">
-                                    ${marginPct !== "-" ? marginPct + " %" : "-"}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="highlight-bar">
-                            <div class="highlight-bar-inner"
-                                 style="width:${barScale}%; background:${barColor}; transform: scaleX(${Math.abs(barRatio)});">
-                            </div>
-                        </div>
+                        <ul class="component-list">
+                            <li>
+                                <strong>Inbound transport cost per product:</strong>
+                                ${inboundPerProduct}
+                            </li>
+                            <li>
+                                <strong>Storage cost per product:</strong>
+                                ${storagePerProduct}
+                            </li>
+                            <li>
+                                <strong>Outbound transport cost per product:</strong>
+                                ${outboundPerProduct}
+                            </li>
+                            <li>
+                                <strong>License fee percentage:</strong>
+                                ${revenue ? licencePct.toFixed(2) + " %" : "-"}
+                            </li>
+                        </ul>
                     </div>
                 </div>
 
                 <!-- 2. FORMULE -->
                 <div class="block">
-                    <div class="block-title"><span class="step">2.</span>Formula</div>
+                    <div class="block-title"><span class="step">2.</span>How the margin is calculated</div>
                     <div class="card-section formula-box">
-                        <div class="formula-line">Net margin per order:</div>
-                        <div class="formula-line">&nbsp;&nbsp;ORDER.Paid_price</div>
-                        <div class="formula-line">&nbsp;&nbsp;- Σ(Production_cost × ORDER_LINE.Quantity)</div>
-                        <div class="formula-line">&nbsp;&nbsp;- Σ(Inbound_transport_cost × ORDER_LINE.Quantity)</div>
-                        <div class="formula-line">&nbsp;&nbsp;- Σ(Storage_cost × ORDER_LINE.Quantity)</div>
                         <div class="formula-line">
-                            &nbsp;&nbsp;- ((CLIENT.Outbound_transport_cost × ORDER.Quantity)
-                            / number_of_orders_for_that_client_in_selected_year)
+                            Net margin = Paid price − Production costs − Inbound transport − Storage
                         </div>
                         <div class="formula-line">
-                            &nbsp;&nbsp;- (License_fee_procent × ORDER.Paid_price)
+                            &nbsp;&nbsp;&nbsp;&nbsp;− Client outbound share − Licence fee (percentage of Paid price)
                         </div>
+                    </div>
+                    <div class="card-section formula-box" style="margin-top:0.35rem;">
+                        <div class="formula-line">For this order:</div>
+                        <div class="formula-line">
+                            {{"${"}}euro(revenue){{"}"}} − {{"${"}}euro(prod){{"}"}} − {{"${"}}euro(inbound){{"}"}} − {{"${"}}euro(storage){{"}"}}
+                        </div>
+                        <div class="formula-line">
+                            − {{"${"}}euro(outbound){{"}"}} − {{"${"}}euro(licence){{"}"}} = <strong>{{"${"}}euro(margin){{"}"}}</strong>
+                            ${marginPct !== "-" ? ` (${marginPct} % of Paid price)` : ""}                        </div>
                     </div>
                     <div class="formula-caption">
-                        ORDER_LINE.Quantity = quantity per product line ·
-                        ORDER.Quantity = total quantity in this order.
+                        The client outbound share is this client’s yearly outbound cost
+                        divided over their orders; the licence fee uses the percentage on the paid price.
                     </div>
                 </div>
 
-                <!-- 3. PAID PRICE -->
-                <div class="block">
-                    <div class="block-title"><span class="step">3.</span>Paid price for this order</div>
-                    <div class="card-section">
-                        Paid price (ORDER.Paid_price): <strong>${euro(revenue)}</strong><br>
-                        Net margin for this order: <strong>${euro(margin)}</strong>
-                        ${marginPct !== "-" ? ` (${marginPct} % of Paid_price)` : ""}
-                    </div>
-                </div>
 
-                <!-- 4. PER TYPE OF PRODUCTS -->
-                <div class="block">
-                    <div class="block-title"><span class="step">4.</span>Per type of products in the order</div>
-                    <div class="card-section">
-                        <ul class="component-list">
-                            <li>
-                                <strong>Production cost per product (average):</strong>
-                                ${prodPerProduct}
-                            </li>
-                            <li>
-                                <strong>Quantity (total units in this order):</strong>
-                                ${qty || "-"}
-                            </li>
-                            <li>
-                                <strong>Inbound transport cost per product (average):</strong>
-                                ${inboundPerProduct}
-                            </li>
-                            <li>
-                                <strong>Storage cost per product (average):</strong>
-                                ${storagePerProduct}
-                            </li>
-                        </ul>
-                        <div class="small-note">
-                            Note: these per-product values are averages and are
-                            <strong>not yet multiplied by quantity</strong>.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 5. PER ORDER -->
-                <div class="block">
-                    <div class="block-title"><span class="step">5.</span>Per order</div>
-                    <div class="card-section">
-                        <ul class="component-list">
-                            <li>
-                                <strong>Outbound transport cost (allocated to this order):</strong>
-                                ${euro(outbound)}
-                            </li>
-                            <li>
-                                <strong>Outbound transport cost per client (from cost table):</strong>
-                                ${
-                                    outboundClientRate !== null
-                                        ? euro(outboundClientRate)
-                                        : "-"
-                                }
-                            </li>
-                            <li>
-                                <strong>Quantity (ORDER.Quantity):</strong>
-                                ${qty || "-"}
-                            </li>
-                            <li>
-                                <strong>Amount of orders of that client in the selected year:</strong>
-                                ${opc || "-"}
-                            </li>
-                            <li>
-                                <strong>Licence fee for this order:</strong>
-                                ${euro(licence)} (≈ ${licencePct.toFixed(2)} % of Paid_price)
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- 6. VOLLEDIG INGEVULDE BEREKENING -->
-                <div class="block">
-                    <div class="block-title"><span class="step">6.</span>Filled-in calculation</div>
-                    <div class="card-section">
-                        <div class="highlight-result">
-                            M = ${euro(revenue)}
-                            − ${euro(prod)}
-                            − ${euro(inbound)}
-                            − ${euro(storage)}
-                            − ${euro(outbound)}
-                            − ${euro(licence)}
-                        </div>
-                        <div class="highlight-result">
-                            = <strong>${euro(margin)}</strong>
-                        </div>
-                    </div>
-                </div>
             `;
         });
     });

@@ -120,16 +120,16 @@ def margin_page():
     """
     NET MARGIN ANALYSIS
 
-    Revenue per order:
-      - Σ(ORDER_LINE.Price_paid)
+    Revenue per order line:
+      - ORDER_LINE.Price_paid
 
-    Net margin per order:
-      Σ(ORDER_LINE.Price_paid
+    Net margin per order line:
+      ORDER_LINE.Price_paid
         - Production_cost * ORDER_LINE.Quantity
         - Inbound_transport_cost * ORDER_LINE.Quantity
         - Storage_cost * ORDER_LINE.Quantity
         - CLIENT.Outbound_transport_cost * ORDER_LINE.Quantity
-        - License_fee_procent * ORDER_LINE.Price_paid)
+        - License_fee_procent * ORDER_LINE.Price_paid
     """
 
     selected_year_str = request.args.get("year", "").strip()
