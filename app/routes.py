@@ -12,7 +12,6 @@ from .models import (
     ORDER_LINE,
     BRAND,
     PRODUCT_COST,
-    CLIENT_COST,
 )
 
 main = Blueprint("main", __name__)
@@ -129,7 +128,7 @@ def margin_page():
       - Σ(Production_cost * ORDER_LINE.Quantity)
       - Σ(Inbound_transport_cost * ORDER_LINE.Quantity)
       - Σ(Storage_cost * ORDER_LINE.Quantity)
-      - ((CLIENT_COST.Outbound_transport_cost * ORDER.Quantity)
+      - ((CLIENT.Outbound_transport_cost * ORDER.Quantity)
          / number_of_orders_for_that_client_in_selected_year)
       - (License_fee_procent * ORDER.Paid_price)
     """
@@ -210,7 +209,7 @@ def margin_page():
     inbound = func.coalesce(PRODUCT_COST.Inbound_transport_cost, 0.0)
     prod_cost = func.coalesce(PRODUCT_COST.Production_cost, 0.0)
     storage = func.coalesce(PRODUCT_COST.Storage_cost, 0.0)
-    outbound = func.coalesce(CLIENT_COST.Outbound_transport_cost, 0.0)
+    outbound = func.coalesce(CLIENT.Outbound_transport_cost, 0.0)
     license_pct = func.coalesce(BRAND.License_fee_procent, 0.0)
     license_pct_effective = license_pct  # hier ga je er van uit dat dit al als fractie komt (bv. 0.15 voor 15%)
 
@@ -285,7 +284,6 @@ def margin_page():
             .join(PRODUCT_COST, PRODUCT.PRODUCT_ID == PRODUCT_COST.PRODUCT_ID)
             .join(BRAND, PRODUCT.BRAND_ID == BRAND.BRAND_ID)
             .join(CLIENT, ORDER.CLIENT_ID == CLIENT.CLIENT_ID)
-            .outerjoin(CLIENT_COST, CLIENT_COST.CLIENT_ID == CLIENT.CLIENT_ID)
             .filter(*base_filters_client)
             .group_by(ORDER.ORDER_NR, ORDER.Order_date, ORDER.Paid_price)
             .order_by(ORDER.Order_date.asc())
@@ -348,7 +346,6 @@ def margin_page():
             .join(PRODUCT_COST, PRODUCT.PRODUCT_ID == PRODUCT_COST.PRODUCT_ID)
             .join(BRAND, PRODUCT.BRAND_ID == BRAND.BRAND_ID)
             .join(CLIENT, ORDER.CLIENT_ID == CLIENT.CLIENT_ID)
-            .outerjoin(CLIENT_COST, CLIENT_COST.CLIENT_ID == CLIENT.CLIENT_ID)
             .outerjoin(order_count_subq, order_count_subq.c.CLIENT_ID == ORDER.CLIENT_ID)
             .filter(*base_filters_year_country)
             .group_by(ORDER.ORDER_NR, ORDER.Order_date, ORDER.Paid_price)

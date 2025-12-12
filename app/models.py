@@ -35,11 +35,9 @@ class CLIENT(db.Model):
 
     BTW_VAT = db.Column("BTW/VAT", db.String)
     Email = db.Column(db.String)
+    Outbound_transport_cost = db.Column(db.Float)
 
     orders = db.relationship("ORDER", backref="client")
-
-    # één rij met kosten per klant
-    costs = db.relationship("CLIENT_COST", back_populates="client", uselist=False)
 
     def __repr__(self):
         return f"<CLIENT {self.CLIENT_ID} - {self.Name}>"
@@ -159,19 +157,3 @@ class ORDER_LINE(db.Model):
             f"<ORDER_LINE {self.ORDER_LINE_NR} order={self.ORDER_NR} "
             f"product={self.PRODUCT_ID}>"
         )
-
-
-# ---------------- CLIENT_COST ----------------
-class CLIENT_COST(db.Model):
-    __tablename__ = 'CLIENT_COST'
-
-    CLIENT_COST_ID = db.Column(db.Integer, primary_key=True)
-    CLIENT_ID = db.Column(db.Integer, db.ForeignKey('CLIENT.CLIENT_ID'))
-
-    # outbound transport magazijn -> klant (gemiddelde per order / klant)
-    Outbound_transport_cost = db.Column(db.Float)
-
-    client = db.relationship("CLIENT", back_populates="costs")
-
-    def __repr__(self):
-        return f"<CLIENT_COST {self.CLIENT_COST_ID} client={self.CLIENT_ID}>"
