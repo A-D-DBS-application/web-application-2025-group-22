@@ -1125,6 +1125,23 @@ def generate_next_order_nr(order_date: date) -> str:
     return f"{year}-{next_n}"
 
 
+def generate_next_order_line_nrs(count: int) -> list[int]:
+    """
+    Bepaal de volgende vrije ORDER_LINE_NR-waarden in de database.
+
+    Dit kijkt naar het huidige maximum in Supabase en geeft een oplopende
+    reeks terug zodat elke nieuwe order line een uniek primair sleutelnummer
+    krijgt.
+    """
+
+    if count <= 0:
+        return []
+
+    max_existing = db.session.query(func.max(ORDER_LINE.ORDER_LINE_NR)).scalar()
+    start = (max_existing or 0) + 1
+    return list(range(start, start + count))
+
+
 # -------------------------
 # ADD ORDER (ENKEL ALS CLIENT BESTAAT)
 # -------------------------
@@ -1201,9 +1218,12 @@ def add_record_order():
 
     db.session.add(new_order)
 
-    for line in order_lines:
+    next_line_nrs = generate_next_order_line_nrs(len(order_lines))
+
+    for line, order_line_nr in zip(order_lines, next_line_nrs):
         db.session.add(
             ORDER_LINE(
+                ORDER_LINE_NR=order_line_nr,
                 ORDER_NR=new_order_nr,
                 PRODUCT_ID=line["product_id"],
                 Quantity=line["quantity"],
