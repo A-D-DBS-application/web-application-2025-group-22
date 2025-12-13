@@ -594,6 +594,16 @@ def add_client():
     city = request.form.get("city")
     street = request.form.get("street")
     house = request.form.get("house_number")
+    outbound_transport_cost_raw = request.form.get("outbound_transport_cost")
+
+    try:
+        outbound_transport_cost = (
+            float(outbound_transport_cost_raw)
+            if outbound_transport_cost_raw not in (None, "")
+            else None
+        )
+    except ValueError:
+        outbound_transport_cost = None
 
     if not name or not country:
         return redirect(url_for("main.clients"))
@@ -604,7 +614,8 @@ def add_client():
         Postal_code=postal,
         City=city,
         Street=street,
-        House_number=house
+        House_number=house,
+        Outbound_transport_cost=outbound_transport_cost,
     )
 
     db.session.add(new_client)
@@ -1018,6 +1029,16 @@ def add_record_client():
     house = request.form.get("house_number")
     btw_vat = request.form.get("btw_vat")
     email = request.form.get("email")
+    outbound_transport_cost_raw = request.form.get("outbound_transport_cost")
+
+    try:
+        outbound_transport_cost = (
+            float(outbound_transport_cost_raw)
+            if outbound_transport_cost_raw not in (None, "")
+            else None
+        )
+    except ValueError:
+        outbound_transport_cost = None
 
     if not name:
         return redirect(url_for("main.add_records_page"))
@@ -1031,6 +1052,7 @@ def add_record_client():
         House_number=house,
         BTW_VAT=btw_vat,
         Email=email,
+        Outbound_transport_cost=outbound_transport_cost,
     )
     db.session.add(new_client)
     db.session.commit()
