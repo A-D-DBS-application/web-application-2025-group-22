@@ -1134,8 +1134,10 @@ def add_record_order():
     supplier_id = request.form.get("supplier_id", type=int)
     order_date_str = request.form.get("order_date")
     status = request.form.get("status") or "Deliverd"
-    quantity = request.form.get("quantity", type=int)
-    paid_price = request.form.get("paid_price")
+    product_ids = request.form.getlist("product_id[]")
+    quantities = request.form.getlist("quantity[]")
+    prices_paid = request.form.getlist("price_paid[]")
+
 
     if not client_id or not supplier_id or not order_date_str:
         return redirect(url_for("main.add_records_page"))
@@ -1154,10 +1156,35 @@ def add_record_order():
     except ValueError:
         return redirect(url_for("main.add_records_page"))
 
-    try:
-        paid_price_value = float(paid_price) if paid_price else 0.0
-    except ValueError:
-        paid_price_value = 0.0
+    order_lines: list[dict] = []
+    for pid_str, qty_str, price_str in zip(product_ids, quantities, prices_paid):
+        try:
+            pid_val = int(pid_str)
+            qty_val = int(qty_str)
+            price_val = float(price_str or 0.0)
+        except (TypeError, ValueError):
+            continue
+
+        if qty_val <= 0:
+            continue
+
+        product = PRODUCT.query.get(pid_val)
+        if not product:
+            continue
+
+        order_lines.append(
+            {
+                "product_id": pid_val,
+                "quantity": qty_val,
+                "price_paid": price_val,
+            }
+        )
+
+    if not order_lines:
+        return redirect(url_for("main.add_records_page"))
+
+    total_quantity = sum(line["quantity"] for line in order_lines)
+    total_paid_price = sum(line["price_paid"] for line in order_lines)
 
     # Automatisch volgend ORDER_NR
     new_order_nr = generate_next_order_nr(order_date)
@@ -1168,11 +1195,22 @@ def add_record_order():
         SUPPLIER_ID=supplier_id,
         Order_date=order_date,
         Status=status,
-        Quantity=quantity or 0,
-        Paid_price=paid_price_value,
+        Quantity=total_quantity,
+        Paid_price=total_paid_price,
     )
 
     db.session.add(new_order)
+
+    for line in order_lines:
+        db.session.add(
+            ORDER_LINE(
+                ORDER_NR=new_order_nr,
+                PRODUCT_ID=line["product_id"],
+                Quantity=line["quantity"],
+                Price_paid=line["price_paid"],
+            )
+        )
+
     db.session.commit()
 
     return redirect(url_for("main.add_records_page"))

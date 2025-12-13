@@ -200,10 +200,10 @@
     <div class="section">
         <h2>Add Order</h2>
         <small>
-            ORDER: ORDER_NR is automatically generated based on the year (YYYY-N). An order can only be created for an existing client.
+            ORDER: ORDER_NR is automatically generated based on the year (YYYY-N). Add one or more products below; order totals are calculated from the order lines and stored in ORDER and ORDER_LINE.
         </small>
 
-        <form class="record-form" method="post" action="{{ url_for('main.add_record_order') }}">
+        <form id="orderForm" class="record-form" method="post" action="{{ url_for('main.add_record_order') }}">
             <div class="field-group">
                 <label class="field-label">Client *</label>
                 <select name="client_id" required>
@@ -234,14 +234,50 @@
                 <input type="text" name="status" value="Deliverd">
             </div>
 
-            <div class="field-group">
-                <label class="field-label">Quantity</label>
-                <input type="number" name="quantity" min="0">
+            <div class="field-group" style="grid-column: 1 / -1;">
+                <label class="field-label">Order lines</label>
+                <div style="overflow-x: auto;">
+                    <table id="orderLinesTable" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="text-align: left;">
+                                <th style="padding: 6px 4px;">Product</th>
+                                <th style="padding: 6px 4px;">Quantity</th>
+                                <th style="padding: 6px 4px;">Price paid (line)</th>
+                                <th style="padding: 6px 4px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="order-line-row">
+                                <td style="padding: 4px;">
+                                    <select name="product_id[]" class="product-select" required>
+                                        <option value="">-- Choose product --</option>
+                                        {% for p in products %}
+                                            <option value="{{ p.PRODUCT_ID }}">{{ p.Name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td style="padding: 4px;">
+                                    <input type="number" name="quantity[]" class="qty-input" min="1" value="1" required>
+                                </td>
+                                <td style="padding: 4px;">
+                                    <input type="number" name="price_paid[]" class="price-input" min="0" step="0.01" value="0" required>
+                                </td>
+                                <td style="padding: 4px;">
+                                    <button type="button" class="remove-line">Remove</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" id="addLineButton" style="margin-top: 0.4rem;">Add another product</button>
             </div>
 
-            <div class="field-group">
-                <label class="field-label">Paid_price (totaal)</label>
-                <input type="number" step="0.01" name="paid_price">
+            <div class="field-group" style="grid-column: 1 / -1;">
+                <div class="field-label">Order totals</div>
+                <div>
+                    <strong>Total quantity:</strong> <span id="totalQuantity">1</span><br>
+                    <strong>Total paid price:</strong> € <span id="totalPaid">0.00</span>
+                </div>
             </div>
 
             <button type="submit">Add Order</button>
@@ -250,6 +286,69 @@
 
     <a href="{{ url_for('main.home_page') }}"><button>Back</button></a>
 </div>
+
+<script>
+    const tableBody = document.querySelector('#orderLinesTable tbody');
+    const addLineButton = document.getElementById('addLineButton');
+    const totalQtyEl = document.getElementById('totalQuantity');
+    const totalPaidEl = document.getElementById('totalPaid');
+
+    function updateTotals() {
+        let totalQty = 0;
+        let totalPaid = 0;
+
+        tableBody.querySelectorAll('.order-line-row').forEach((row) => {
+            const qty = parseInt(row.querySelector('.qty-input').value || '0', 10);
+            const price = parseFloat(row.querySelector('.price-input').value || '0');
+
+            if (!isNaN(qty)) {
+                totalQty += qty;
+            }
+            if (!isNaN(price)) {
+                totalPaid += price;
+            }
+        });
+
+        totalQtyEl.textContent = totalQty;
+        totalPaidEl.textContent = totalPaid.toFixed(2);
+    }
+
+    function bindRow(row) {
+        const qtyInput = row.querySelector('.qty-input');
+        const priceInput = row.querySelector('.price-input');
+        const removeBtn = row.querySelector('.remove-line');
+
+        qtyInput.addEventListener('input', updateTotals);
+        priceInput.addEventListener('input', updateTotals);
+
+        removeBtn.addEventListener('click', () => {
+            const rows = tableBody.querySelectorAll('.order-line-row');
+            if (rows.length > 1) {
+                row.remove();
+                updateTotals();
+            }
+        });
+    }
+
+    function addLineRow() {
+        const templateRow = tableBody.querySelector('.order-line-row');
+        const newRow = templateRow.cloneNode(true);
+
+        newRow.querySelector('.product-select').selectedIndex = 0;
+        newRow.querySelector('.qty-input').value = 1;
+        newRow.querySelector('.price-input').value = 0;
+
+        tableBody.appendChild(newRow);
+        bindRow(newRow);
+        updateTotals();
+    }
+
+    const initialRows = tableBody.querySelectorAll('.order-line-row');
+    initialRows.forEach(bindRow);
+    updateTotals();
+
+    addLineButton.addEventListener('click', addLineRow);
+</script>
 
 </body>
 </html>
