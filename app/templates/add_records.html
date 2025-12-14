@@ -51,6 +51,20 @@
             margin-top: 0.3rem;
             justify-self: flex-start;
         }
+        
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.4rem;
+        }
+
+        .form-actions .primary-btn,
+        .form-actions .ghost-btn {
+            width: 100%;
+            max-width: 240px;
+        }
         .field-label {
             font-size: 0.8rem;
             font-weight: 500;
@@ -111,6 +125,17 @@
         #orderLinesTable td {
             padding: 6px 4px;
         }
+                #orderLinesTable td.actions-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            align-items: flex-start;
+        }
+
+        #orderLinesTable td.actions-cell .primary-btn {
+            width: 100%;
+        }
+
 
         .order-line-row .remove-line {
             margin-top: 0;
@@ -192,7 +217,9 @@
                 <input type="number" step="0.01" name="outbound_transport_cost">
             </div>
 
-            <button type="submit" class="primary-btn">Add Client</button>
+            <div class="form-actions">
+                <button type="submit" class="primary-btn">Add Client</button>
+            </div>
         </form>
     </div>
 
@@ -222,7 +249,9 @@
                 </select>
             </div>
 
-            <button type="submit" class="primary-btn">Add Brand</button>
+            <div class="form-actions">
+                <button type="submit" class="primary-btn">Add Brand</button>
+            </div>
         </form>
     </div>
 
@@ -261,7 +290,9 @@
                 <label class="field-label">Currency</label>
                 <input type="text" name="currency" value="EUR">
             </div>
-            <button type="submit" class="primary-btn">Add Product</button>
+            <div class="form-actions">
+                <button type="submit" class="primary-btn">Add Product</button>
+            </div>
         </form>
     </div>
 
@@ -306,7 +337,7 @@
             <div class="field-group" style="grid-column: 1 / -1;">
                 <label class="field-label">Order lines</label>
                 <div style="overflow-x: auto;">
-                    <table id="orderLinesTable"
+                    <table id="orderLinesTable">
                         <thead>
                             <tr style="text-align: left;">
                                 <th>Product</th>
@@ -331,15 +362,15 @@
                                 <td>
                                     <input type="number" name="price_paid[]" class="price-input" min="0" step="0.01" value="0" required>
                                 </td>
-                                <td>
-                                    <button type="button" class="primary-btn">Remove</button>
+                                <td class="actions-cell">
+                                    <button type="button" class="primary-btn remove-line">Remove</button>
                                 </td>
                             </tr>
                         </tbody>
                                                 <tfoot>
                             <tr class="add-line-row">
                                 <td colspan="3"></td>
-                                <td>
+                                <td class="actions-cell">
                                     <button type="button" id="addLineButton" class="primary-btn">Add another product</button>
                                 </td>
                             </tr>
@@ -355,7 +386,9 @@
                     <strong>Total paid price:</strong> € <span id="totalPaid">0.00</span>
                 </div>
             </div>
-            <button type="submit" class="primary-btn">Add Order</button>
+            <div class="form-actions">
+                <button type="submit" class="primary-btn">Add Order</button>
+            </div>
         </form>
     </div>
     <button class="primary-btn back-button" onclick="window.location.href='/home'">Back</button>
