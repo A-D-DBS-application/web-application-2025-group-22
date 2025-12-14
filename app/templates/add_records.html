@@ -14,6 +14,7 @@
 
         .home-container h1 {
             margin-bottom: 0.3rem;
+            color: #4b2e2b;
         }
 
         .home-container .subtitle {
@@ -30,6 +31,7 @@
         }
         .section h2 {
             margin-bottom: 0.4rem;
+            color: #4b2e2b;
         }
         .section small {
             color: #555;
@@ -47,7 +49,6 @@
         }
         form.record-form button {
             margin-top: 0.3rem;
-            padding: 0.35rem 0.7rem;
             justify-self: flex-start;
         }
         .field-label {
@@ -62,6 +63,70 @@
 
         .logo {
             margin-bottom: 0.4rem;
+        }
+        
+        .primary-btn {
+            background: #8b5b3f;
+            color: #fff;
+            border: none;
+            padding: 0.45rem 0.9rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .primary-btn:hover,
+        .primary-btn:focus-visible {
+            background: #744a33;
+        }
+
+        .ghost-btn {
+            background: #f1e6db;
+            color: #4b2e2b;
+            border: 1px solid #cbb6a4;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .ghost-btn:hover,
+        .ghost-btn:focus-visible {
+            background: #e4d3c4;
+            border-color: #b89e88;
+        }
+
+        #orderLinesTable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #orderLinesTable th {
+            color: #4b2e2b;
+        }
+
+        #orderLinesTable th,
+        #orderLinesTable td {
+            padding: 6px 4px;
+        }
+
+        .order-line-row .remove-line {
+            margin-top: 0;
+        }
+
+        .add-line-row {
+            text-align: right;
+        }
+
+        .add-line-button {
+            padding: 0.35rem 0.75rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            margin-top: 0.8rem;
         }
     </style>
 </head>
@@ -127,7 +192,7 @@
                 <input type="number" step="0.01" name="outbound_transport_cost">
             </div>
 
-            <button type="submit">Add Client</button>
+            <button type="submit" class="primary-btn">Add Client</button>
         </form>
     </div>
 
@@ -157,7 +222,7 @@
                 </select>
             </div>
 
-            <button type="submit">Add Brand</button>
+            <button type="submit" class="primary-btn">Add Brand</button>
         </form>
     </div>
 
@@ -196,8 +261,7 @@
                 <label class="field-label">Currency</label>
                 <input type="text" name="currency" value="EUR">
             </div>
-
-            <button type="submit">Add Product</button>
+            <button type="submit" class="primary-btn">Add Product</button>
         </form>
     </div>
 
@@ -242,18 +306,18 @@
             <div class="field-group" style="grid-column: 1 / -1;">
                 <label class="field-label">Order lines</label>
                 <div style="overflow-x: auto;">
-                    <table id="orderLinesTable" style="width: 100%; border-collapse: collapse;">
+                    <table id="orderLinesTable"
                         <thead>
                             <tr style="text-align: left;">
-                                <th style="padding: 6px 4px;">Product</th>
-                                <th style="padding: 6px 4px;">Quantity</th>
-                                <th style="padding: 6px 4px;">Price paid (line)</th>
-                                <th style="padding: 6px 4px;">Actions</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Price paid (line)</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr class="order-line-row">
-                                <td style="padding: 4px;">
+                                <td>
                                     <select name="product_id[]" class="product-select" required>
                                         <option value="">-- Choose product --</option>
                                         {% for p in products %}
@@ -261,20 +325,27 @@
                                         {% endfor %}
                                     </select>
                                 </td>
-                                <td style="padding: 4px;">
+                                <td>
                                     <input type="number" name="quantity[]" class="qty-input" min="1" value="1" required>
                                 </td>
-                                <td style="padding: 4px;">
+                                <td>
                                     <input type="number" name="price_paid[]" class="price-input" min="0" step="0.01" value="0" required>
                                 </td>
-                                <td style="padding: 4px;">
-                                    <button type="button" class="remove-line">Remove</button>
+                                <td>
+                                    <button type="button" class="primary-btn">Remove</button>
                                 </td>
                             </tr>
                         </tbody>
+                                                <tfoot>
+                            <tr class="add-line-row">
+                                <td colspan="3"></td>
+                                <td>
+                                    <button type="button" id="addLineButton" class="primary-btn">Add another product</button>
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
-                <button type="button" id="addLineButton" style="margin-top: 0.4rem;">Add another product</button>
             </div>
 
             <div class="field-group" style="grid-column: 1 / -1;">
@@ -284,12 +355,11 @@
                     <strong>Total paid price:</strong> € <span id="totalPaid">0.00</span>
                 </div>
             </div>
-
-            <button type="submit">Add Order</button>
+            <button type="submit" class="primary-btn">Add Order</button>
         </form>
     </div>
 
-    <a href="{{ url_for('main.home_page') }}"><button>Back</button></a>
+    <button class="back-button" onclick="window.location.href='/home'">Back</button>
 </div>
 
 <script>
