@@ -2,15 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Margin - LiQ</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style_home.css') }}">
+    <title>Margin - LiQ!</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_clients.css') }}">
     <style>
-        /* OVERRIDE: main container wat breder en compacter */
-        .home-container {
-            max-width: 1400px;
-            width: 96%;
-            margin: 0 auto;
-            padding: 1.5rem 1.5rem 2rem;
+        .clients-layout {
+            width: min(1500px, 95vw);
+            padding: 20px;
+        }
+
+        .page-title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .page-title-block h1 {
+            margin: 0;
+            font-size: 34px;
+            color: #6e3c1b;
+        }
+
+        .page-title-block .subtitle {
+            margin: 0;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 22px 24px;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+            margin-bottom: 18px;
         }
 
         .layout-wrapper {
@@ -270,65 +291,73 @@
 </head>
 <body>
 
-<div class="home-container">
-    <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+<div class="clients-layout">
+        <div class="page-header">
+            <a href="{{ url_for('main.home_page') }}">
+                <img src="{{ url_for('static', filename='logo.svg') }}" alt="Liq logo" class="logo">
+            </a>
 
-    <h1>
-        Margin overview
-        {% if selected_year %}
-            ({{ selected_year }})
-        {% endif %}
-    </h1>
+            <div class="page-title-block">
+                <h1>
+                    Margin overview
+                    {% if selected_year %}
+                        ({{ selected_year }})
+                    {% endif %}
+                </h1>
+                <p class="subtitle">
+                    The net margin is calculated by subtracting all the costs from the revenue and
+                    representing it as a percentage of the total price paid for the specific order
+                    line. Hover over the table to see more details.
+                </p>
+            </div>
+            <div class="action-group">
+                <a class="action-button" href="{{ url_for('main.home_page') }}">Home</a>
+                <button class="action-button" type="button" onclick="document.getElementById('filters').scrollIntoView({behavior:'smooth'})">Filters</button>
+            </div>
+        </div>
 
-    <p class="subtitle">
-        The net margin is calculated by subtracting all the costs from the revenue and
-        representing it as a percentage of the total price paid for the specific order
-        line. An order line is the share of one specific product in an order. Hover over
-        the table to see more details.
-    </p>
+        <div class="card" id="filters">
+            <h3 style="margin-top: 0; margin-bottom: 12px;">Filters</h3>
+            <form method="get"
+                  action="{{ url_for('main.margin_page') }}"
+                  class="filter-form">
 
-    <!-- FILTERS -->
-    <form method="get"
-          action="{{ url_for('main.margin_page') }}"
-          class="filter-form">
+                <label for="year">Year:</label>
+                <select name="year" id="year">
+                    <option value="">-- Choose a Year --</option>
+                    {% for y in years %}
+                        <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>
+                            {{ y }}
+                        </option>
+                    {% endfor %}
+                </select>
 
-        <!-- Year -->
-        <label for="year">Year:</label>
-        <select name="year" id="year">
-            <option value="">-- Choose a Year --</option>
-            {% for y in years %}
-                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>
-                    {{ y }}
-                </option>
-            {% endfor %}
-        </select>
+                <label for="country">Country:</label>
+                <select name="country" id="country">
+                    <option value="">All Countries</option>
+                    {% for country in countries %}
+                        <option value="{{ country }}" {% if selected_country == country %}selected{% endif %}>
+                            {{ country }}
+                        </option>
+                    {% endfor %}
+                </select>
 
-        <!-- Country -->
-        <label for="country">Country:</label>
-        <select name="country" id="country">
-            <option value="">All Countries</option>
-            {% for country in countries %}
-                <option value="{{ country }}" {% if selected_country == country %}selected{% endif %}>
-                    {{ country }}
-                </option>
-            {% endfor %}
-        </select>
+                <label for="client_id">Client:</label>
+                <select name="client_id" id="client_id">
+                    <option value="">-- All clients --</option>
+                    {% for c in clients %}
+                        <option value="{{ c.CLIENT_ID }}" {% if selected_client_id == c.CLIENT_ID %}selected{% endif %}>
+                            {{ c.Name }}
+                        </option>
+                    {% endfor %}
+                </select>
 
-        <!-- Client (optional) -->
-        <label for="client_id">Client:</label>
-        <select name="client_id" id="client_id">
-            <option value="">-- All clients --</option>
-            {% for c in clients %}
-                <option value="{{ c.CLIENT_ID }}" {% if selected_client_id == c.CLIENT_ID %}selected{% endif %}>
-                    {{ c.Name }}
-                </option>
-            {% endfor %}
-        </select>
+                <button type="submit" class="action-button">Show margin</button>
+            </form>
+        </div>
 
-        <button type="submit">Show margin</button>
-    </form>
+        <div class="margin-result">
 
-    <div class="margin-result">
         {% if avg_margin is not none and selected_year %}
             <div class="average-banner">
                 <div class="average-label">Average of all shown margins</div>
@@ -377,6 +406,7 @@
                     <!-- RECHTER TABEL PANEL -->
                     <div class="right-panel">
                         <h3>Orders in {{ selected_year }}</h3>
+                        <div class="table-wrapper" style="margin-top: 0.5rem;"></div>
                         <table class="margin-table">
                             <thead>
                             <tr>
@@ -417,6 +447,7 @@
                             {% endfor %}
                             </tbody>
                         </table>
+                        </div>
                     </div>
 
                 </div>
@@ -434,7 +465,7 @@
         {% endif %}
     </div>
 
-    <a href="{{ url_for('main.home_page') }}"><button>Back</button></a>
+    <a href="{{ url_for('main.home_page') }}"><button class="back-button">Back</button></a>
 </div>
 
 <script>
