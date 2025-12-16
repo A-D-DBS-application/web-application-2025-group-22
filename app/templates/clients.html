@@ -111,7 +111,7 @@
         <a href="{{ url_for('main.home_page') }}" class="logo-link">
             <img src="{{ url_for('static', filename='logo.svg') }}" class="logo" alt="Liq logo">
         </a>
-        <h1>Clients List</h1>
+        <h1>Clients List{% if selected_year %} ({{ selected_year }}){% endif %}</h1>
 
         <div class="top-buttons">
             <button class="compact-button" onclick="window.location.href='/home'">Home</button>
@@ -142,6 +142,17 @@
                 {% endfor %}
             </select>
 
+            <label>Year:</label>
+            <select name="year">
+                <option value="">-- All Years --</option>
+                {% for year in years %}
+                    <option value="{{ year }}"
+                        {% if selected_year == year %} selected {% endif %}>
+                        {{ year }}
+                    </option>
+                {% endfor %}
+            </select>
+
             <label>Min Revenue:</label>
             <input type="number" name="min_rev" value="{{ request_args.get('min_rev','') }}">
 
@@ -161,6 +172,7 @@
 
             <input type="hidden" name="name" value="{{ request_args.get('name','') }}">
             <input type="hidden" name="country" value="{{ request_args.get('country','') }}">
+            <input type="hidden" name="year" value="{{ request_args.get('year','') }}">
             <input type="hidden" name="min_rev" value="{{ request_args.get('min_rev','') }}">
             <input type="hidden" name="max_rev" value="{{ request_args.get('max_rev','') }}">
 
@@ -217,30 +229,26 @@
                     <th>Name</th>
                     <th>Country</th>
                     <th>Total Revenue</th>
-                    <th>Production Cost</th>
-                    <th>Transport Cost</th>
-                    <th>Storage Cost</th>
+                    <th>Total Production Cost</th>
+                    <th>Total Transport Cost</th>
+                    <th>Total Storage Cost</th>
                 </tr>
             </thead>
-            
             <tbody>
                 {% for c in clients %}
-                    {% set totals = client_totals[c.CLIENT_ID] %}
                     <tr>
                         <td>{{ c.Name }}</td>
                         <td>{{ c.Country }}</td>
-                        <td>{{ totals.total_revenue }}</td>
-                        <td>{{ totals.total_production_cost }}</td>
-                        <td>{{ totals.total_transport_cost }}</td>
-                        <td>{{ totals.total_storage_cost }}</td>
+                        <td>{{ "%.2f"|format(client_totals[c.CLIENT_ID].total_revenue) }}</td>
+                        <td>{{ "%.2f"|format(client_totals[c.CLIENT_ID].total_production_cost) }}</td>
+                        <td>{{ "%.2f"|format(client_totals[c.CLIENT_ID].total_transport_cost) }}</td>
+                        <td>{{ "%.2f"|format(client_totals[c.CLIENT_ID].total_storage_cost) }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
-
         </table>
     </div>
-
 </div>
-
+</div>
 </body>
 </html>
