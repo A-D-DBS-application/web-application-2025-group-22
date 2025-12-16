@@ -435,6 +435,7 @@
                             <thead>
                             <tr>
                                 <th>Order nr.</th>
+                                <th>Client</th>
                                 <th>Date</th>
                                 <th>Revenue (Paid_price)</th>
                                 <th>Net margin</th>
@@ -445,6 +446,7 @@
                             {% for o in orders %}
                                 <tr class="order-row"
                                     data-ordernr="{{ o.order_nr }}"
+                                    data-client="{{ o.client_name }}"
                                     data-date="{{ o.order_date }}"
                                     data-revenue="{{ o.revenue }}"
                                     data-margin="{{ o.order_margin }}"
@@ -457,6 +459,7 @@
                                     data-opc="{{ o.orders_per_client }}"
                                     data-qty="{{ o.total_quantity|default(0) }}">
                                     <td>{{ o.order_nr }}</td>
+                                    <td>{{ o.client_name or "-" }}</td>
                                     <td>{{ o.order_date }}</td>
                                     <td>{{ o.revenue }} €</td>
                                     <td>{{ o.order_margin }} €</td>
@@ -533,6 +536,10 @@
                     <div class="badge">
                         <span class="badge-label">Order</span>
                         <span class="badge-value">${row.dataset.ordernr}</span>
+                    </div>
+                    <div class="badge">
+                        <span class="badge-label">Client</span>
+                        <span class="badge-value">${row.dataset.client || "-"}</span>
                     </div>
                     <div class="badge">
                         <span class="badge-label">Date</span>

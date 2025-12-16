@@ -271,6 +271,7 @@ def margin_page():
             db.session.query(
                 ORDER.ORDER_NR.label("order_nr"),
                 ORDER.Order_date.label("order_date"),
+                CLIENT.Name.label("client_name"),
                 revenue_expr_order.label("revenue"),
                 prod_sum_expr.label("prod_sum"),
                 inbound_sum_expr.label("inbound_sum"),
@@ -287,8 +288,8 @@ def margin_page():
             .join(BRAND, PRODUCT.BRAND_ID == BRAND.BRAND_ID)
             .join(CLIENT, ORDER.CLIENT_ID == CLIENT.CLIENT_ID)
             .filter(*base_filters_client)
-            .group_by(ORDER.ORDER_NR, ORDER.Order_date)
-            .order_by(ORDER.Order_date.asc())
+            .group_by(ORDER.ORDER_NR, ORDER.Order_date, CLIENT.Name)
+             .order_by(ORDER.Order_date.asc())
         )
 
         per_order_rows = per_order_query.all()
@@ -332,6 +333,7 @@ def margin_page():
             db.session.query(
                 ORDER.ORDER_NR.label("order_nr"),
                 ORDER.Order_date.label("order_date"),
+                CLIENT.Name.label("client_name"),
                 revenue_expr_order.label("revenue"),
                 prod_sum_expr.label("prod_sum"),
                 inbound_sum_expr.label("inbound_sum"),
@@ -350,8 +352,8 @@ def margin_page():
             .join(CLIENT, ORDER.CLIENT_ID == CLIENT.CLIENT_ID)
             .outerjoin(order_count_subq, order_count_subq.c.CLIENT_ID == ORDER.CLIENT_ID)
             .filter(*base_filters_year_country)
-            .group_by(ORDER.ORDER_NR, ORDER.Order_date)
-            .order_by(ORDER.Order_date.asc())
+            .group_by(ORDER.ORDER_NR, ORDER.Order_date, CLIENT.Name)
+             .order_by(ORDER.Order_date.asc())
         )
 
         per_order_rows = per_order_query.all()
@@ -412,6 +414,7 @@ def margin_page():
             {
                 "order_nr": r.order_nr,
                 "order_date": date_str,
+                "client_name": getattr(r, "client_name", None),
                 "revenue": round(revenue_value, 2),
                 "order_margin": round(margin_value, 2),
                 "margin_pct": margin_pct,
@@ -465,6 +468,17 @@ def clients():
     min_rev = request.args.get("min_rev", "")
     max_rev = request.args.get("max_rev", "")
     sort = request.args.get("sort", "default")
+    selected_year_str = request.args.get("year", "").strip()
+    selected_year = int(selected_year_str) if selected_year_str.isdigit() else None
+
+    # ------------------------- YEAR LIST -------------------------
+    year_rows = (
+        db.session.query(func.extract("year", ORDER.Order_date).label("year"))
+        .distinct()
+        .order_by("year")
+        .all()
+    )
+    years = [int(r.year) for r in year_rows if r.year is not None]
 
     # Basis query
     query = CLIENT.query
@@ -490,6 +504,16 @@ def clients():
 
     client_ids = [c.CLIENT_ID for c in clients]
 
+    # Base filters for year
+    base_filters_year = []
+    if selected_year:
+        start_date = date(selected_year, 1, 1)
+        end_date = date(selected_year, 12, 31)
+        base_filters_year = [
+            ORDER.Order_date >= start_date,
+            ORDER.Order_date <= end_date,
+        ]
+
     # ---------------- REVENUE ----------------
     revenue_rows = (
         db.session.query(
@@ -497,6 +521,7 @@ def clients():
             func.sum(ORDER.Paid_price).label("total_revenue")
         )
         .filter(ORDER.CLIENT_ID.in_(client_ids))
+        .filter(*base_filters_year)
         .group_by(ORDER.CLIENT_ID)
         .all()
     )
@@ -514,6 +539,7 @@ def clients():
         .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
         .join(PRODUCT_COST, PRODUCT_COST.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
         .filter(ORDER.CLIENT_ID.in_(client_ids))
+        .filter(*base_filters_year)
         .group_by(ORDER.CLIENT_ID)
         .all()
     )
@@ -531,6 +557,7 @@ def clients():
         .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
         .join(PRODUCT_COST, PRODUCT_COST.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
         .filter(ORDER.CLIENT_ID.in_(client_ids))
+        .filter(*base_filters_year)
         .group_by(ORDER.CLIENT_ID)
         .all()
     )
@@ -548,6 +575,7 @@ def clients():
         .join(ORDER, ORDER_LINE.ORDER_NR == ORDER.ORDER_NR)
         .join(PRODUCT_COST, PRODUCT_COST.PRODUCT_ID == ORDER_LINE.PRODUCT_ID)
         .filter(ORDER.CLIENT_ID.in_(client_ids))
+        .filter(*base_filters_year)
         .group_by(ORDER.CLIENT_ID)
         .all()
     )
@@ -578,6 +606,8 @@ def clients():
         clients=clients,
         client_totals=client_totals,
         countries=countries,
+        years=years,
+        selected_year=selected_year,
         request_args=request.args
     )
 
