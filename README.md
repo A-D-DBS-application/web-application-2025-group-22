@@ -25,14 +25,10 @@ https://ugentbe-my.sharepoint.com/personal/eli_hobo_ugent_be/_layouts/15/stream.
 Third sprint
 https://ugentbe-my.sharepoint.com/personal/eli_hobo_ugent_be/_layouts/15/stream.aspx?id=%2Fpersonal%2Feli%5Fhobo%5Fugent%5Fbe%2FDocuments%2FUgent%20%2D%20Project%20Algoritmen%20en%20Datastructuren%20en%20Databasesystemen%2FThird%20sprint%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2E63c0049f%2D07bb%2D4e24%2D8fd1%2Db055d05128b4
 
-Kanban
+Kanban: Niet gebruikt – sprint opvolging via meetings.
 
-Niet gebruikt – sprint opvolging via meetings.
+Demo: 
 
-Demo 
+Powerpoint: 
 
-(toe te voegen)
-
-Powerpoint
-(toe te voegen)
 
