@@ -27,8 +27,6 @@ https://ugentbe-my.sharepoint.com/personal/eli_hobo_ugent_be/_layouts/15/stream.
 
 Kanban: Niet gebruikt – sprint opvolging via meetings.
 
-Demo: 
-
-Powerpoint: 
+Powerpoint: https://ugentbe-my.sharepoint.com/:p:/r/personal/eli_hobo_ugent_be/Documents/Ugent%20-%20Project%20Algoritmen%20en%20Datastructuren%20en%20Databasesystemen/Project%20A%26D%20and%20DBS.pptx?d=wf7e3ce218c7b40a3b44e63da1c83e1ee&csf=1&web=1&e=hbBDth
 
 
