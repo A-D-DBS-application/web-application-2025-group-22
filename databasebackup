@@ -1,0 +1,88 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.BRAND (
+  BRAND_ID bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  Name text NOT NULL,
+  License_fee_procent double precision,
+  SUPPLIER_ID bigint,
+  CONSTRAINT BRAND_pkey PRIMARY KEY (BRAND_ID),
+  CONSTRAINT BRAND_SUPPLIER_ID_fkey FOREIGN KEY (SUPPLIER_ID) REFERENCES public.SUPPLIER(SUPPLIER_ID)
+);
+CREATE TABLE public.CLIENT (
+  CLIENT_ID bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  Name text NOT NULL,
+  Country text,
+  Postal_code text,
+  City text,
+  Street text,
+  House_number text,
+  BTW/VAT text,
+  Email text,
+  Outbound_transport_cost double precision,
+  CONSTRAINT CLIENT_pkey PRIMARY KEY (CLIENT_ID)
+);
+CREATE TABLE public.ORDER (
+  CLIENT_ID bigint NOT NULL,
+  SUPPLIER_ID bigint,
+  Order_date date,
+  Status text,
+  ORDER_NR text NOT NULL,
+  Quantity bigint,
+  Paid_price double precision,
+  CONSTRAINT ORDER_pkey PRIMARY KEY (ORDER_NR),
+  CONSTRAINT ORDER_SUPPLIER_ID_fkey FOREIGN KEY (SUPPLIER_ID) REFERENCES public.SUPPLIER(SUPPLIER_ID),
+  CONSTRAINT ORDER_CLIENT_ID_fkey FOREIGN KEY (CLIENT_ID) REFERENCES public.CLIENT(CLIENT_ID)
+);
+CREATE TABLE public.ORDER_LINE (
+  ORDER_LINE_NR bigint NOT NULL,
+  ORDER_NR text,
+  PRODUCT_ID bigint,
+  Price_paid double precision,
+  Quantity bigint,
+  CONSTRAINT ORDER_LINE_pkey PRIMARY KEY (ORDER_LINE_NR),
+  CONSTRAINT ORDER_LINE2_PRODUCT_ID_fkey FOREIGN KEY (PRODUCT_ID) REFERENCES public.PRODUCT(PRODUCT_ID),
+  CONSTRAINT ORDER_LINE2_ORDER_NR_fkey FOREIGN KEY (ORDER_NR) REFERENCES public.ORDER(ORDER_NR)
+);
+CREATE TABLE public.PRODUCT (
+  PRODUCT_ID bigint NOT NULL,
+  BRAND_ID bigint,
+  Name text,
+  Currency text,
+  SUPPLIER_ID bigint,
+  CONSTRAINT PRODUCT_pkey PRIMARY KEY (PRODUCT_ID),
+  CONSTRAINT PRODUCT_TYPE_BRAND_ID_fkey FOREIGN KEY (BRAND_ID) REFERENCES public.BRAND(BRAND_ID),
+  CONSTRAINT PRODUCT_SUPPLIER_ID_fkey FOREIGN KEY (SUPPLIER_ID) REFERENCES public.SUPPLIER(SUPPLIER_ID)
+);
+CREATE TABLE public.PRODUCT_COST (
+  PRODUCT_COST_ID bigint NOT NULL UNIQUE,
+  PRODUCT_ID bigint NOT NULL UNIQUE,
+  Production_cost double precision,
+  Inbound_transport_cost double precision,
+  Storage_cost double precision,
+  CONSTRAINT PRODUCT_COST_pkey PRIMARY KEY (PRODUCT_COST_ID),
+  CONSTRAINT PRODUCT_COST_PRODUCT_ID_fkey FOREIGN KEY (PRODUCT_ID) REFERENCES public.PRODUCT(PRODUCT_ID)
+);
+CREATE TABLE public.SUPPLIER (
+  SUPPLIER_ID bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  Name text NOT NULL,
+  Country text,
+  Postal_code text,
+  City text,
+  Street text,
+  House_number text,
+  BTW/VAT text,
+  Email text,
+  Phone text,
+  CONSTRAINT SUPPLIER_pkey PRIMARY KEY (SUPPLIER_ID)
+);
+CREATE TABLE public.WEBUSER (
+  WEBUSER_id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  SUPPLIER_id bigint NOT NULL,
+  Name text,
+  Email text,
+  Role text,
+  Last_seen timestamp without time zone,
+  CONSTRAINT WEBUSER_pkey PRIMARY KEY (WEBUSER_id),
+  CONSTRAINT WEBUSER_SUPPLIER_id_fkey FOREIGN KEY (SUPPLIER_id) REFERENCES public.SUPPLIER(SUPPLIER_ID)
+);
